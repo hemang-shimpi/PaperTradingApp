@@ -1,0 +1,249 @@
+@import url('https://fonts.googleapis.com/css2?family=Circular+Std:wght@400;600&display=swap');
+
+body {
+  background-color: #000000;
+  color: white;
+  font-family: 'avenir', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+  flex-direction: row;
+}
+
+.stock-search {
+  text-align: center;
+  margin: 150px 50px;
+}
+
+.stock-search input {
+  padding: 15px;
+  border-radius: 200px;
+
+  border: 2px solid grey;
+  background: black;
+  color: limegreen;
+}
+
+.stock-details {
+  display: flex;
+  padding-bottom: 70px;
+  padding-left: 40px;
+}
+
+.left-section {
+  flex: 2.5;
+  padding: 130px;
+}
+
+.right-section {
+  flex: 1;
+  background-color: #1c1c1c;
+  padding: 30px;
+  padding-top: 50px;
+  padding-bottom: 120px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  border: 2px solid #1c1c1c;
+  border-radius: 40px;
+  margin: 90px;
+  height: 70vh; /* Stretches fully down */
+}
+/* Stock Info */
+.stock-info {
+  text-align: left;
+}
+
+.price {
+  font-size: 58px;
+  font-weight: bold;
+  font-family: 'Circular Std', sans-serif;
+  display: block;
+}
+
+.change {
+  font-size: 26px; /* Increase size for better visibility */
+  font-weight: bold;
+  padding: 2px 0; /* Slight padding for alignment */
+  display: block; /* Ensures it appears below the price */
+  margin: -62px;
+  padding-left: 60px;
+}
+
+.change.positive {
+  color: limegreen;
+}
+
+.change.negative {
+  color: red;
+}
+
+
+.price {
+  font-size: 58px;
+  font-weight: bold;
+}
+
+.graph-container {
+  margin: 20px 0;
+  height: 550px;
+  
+   
+}
+
+.timeframe-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.timeframe-buttons button {
+  background-color: black;
+  color: grey;
+  border: 0px solid limegreen;
+  padding: 12px 30px;
+  border-radius: 20px;
+  margin-right: 10px;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.timeframe-buttons .active {
+  background-color: limegreen;
+  color: black;
+  border: 2px solid limegreen;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  transform: scale(1.03);
+}
+
+.stock-stats {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.stock-stats p {
+  margin: 10px 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Trade Box */
+.trade-box {
+  padding: 20px;
+  background-color: #1c1c1c;
+  border-radius: 30px;
+  height: 43%;
+}
+
+/* Tabs */
+.trade-tabs {
+  display: flex;
+  width: 96%;
+  margin: 0 auto;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #1c1c1c;
+  padding-bottom: 10px;
+  font-family: 'Circular Std', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  text-align: center;
+  background-color: #121212;
+  border-radius: 200px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  margin-top: 20px;
+  padding: 10px;
+  margin-bottom: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.trade-tabs button {
+  flex: 1;
+  padding: 30px;
+  font-size: 20px;
+  font-weight: 600;
+  border: none;
+  background-color: #121212;
+  color: white;
+  border-bottom: 7px solid transparent;
+  border-radius: 500px;
+  cursor: pointer;
+}
+
+.trade-tabs .active {
+  background-color: limegreen;
+  border-bottom: 0.5px solid black;
+}
+
+form {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #1c1c1c;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  font-family: 'Circular Std', sans-serif;
+  font-size: 18px;
+  color: white;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+form label {
+  display: inline-block;  /* Changed from block to inline-block */
+  font-size: 20px;
+  margin-right: 20px;  /* Space between label and input */
+}
+form input[type="number"] {
+  width: 20%;  /* Adjust width for inline alignment */
+  padding: 12px;
+  border-radius: 800px;
+  background: black;
+  color: limegreen;
+  border: 2px solid grey;
+  margin-bottom: 4px;
+  font-size: 16px;
+}
+
+
+
+form button {
+  width: 50%;
+  padding: 12px;
+  background-color: limegreen;
+  color: black;
+  border: none;
+  cursor: pointer;
+  border-radius: 100px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* Add the following to style the container of the label and input */
+.quantity-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px; /* Optional space between inputs */
+}
+
+.summary {
+  margin-top: 15px;
+  background: #252525;
+  padding: 10px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+
