@@ -246,4 +246,75 @@ form button {
   text-align: center;
 }
 
+/* CSS for Stat box and Dropdown menu */
+
+.stock-stats-container {
+  margin-top: 2rem;
+  color: white;
+  width: 100%;
+  max-width: 1000px;
+  padding: 0 1rem;
+}
+
+.stock-stats-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #444;
+  padding-bottom: 0.5rem;
+}
+
+.stock-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.stock-stat {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.95rem;
+  background: #111;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #222;
+}
+
+.stock-stat .label {
+  color: #aaa;
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+}
+.ticker-dropdown {
+  margin: 20px auto;
+  text-align: right;
+  padding: 0 20px;
+}
+
+.styled-select {
+  background-color: #111;
+  color: white;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 1rem;
+  font-weight: bold;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  max-width: 240px;
+  width: 100%;
+  outline: none;
+}
+
+.styled-select:hover {
+  border-color: limegreen;
+}
+
+.styled-select:focus {
+  border-color: #00ff88;
+  box-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+}
 

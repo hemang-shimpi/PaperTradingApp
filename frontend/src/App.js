@@ -7,11 +7,21 @@ import "./index.css";
 
 const stockOptions = {
   AAPL: "Apple Inc.",
-  MSFT: "Microsoft Corporation",
-  GOOG: "Alphabet Inc.",
+  META: "Meta Platforms Inc.",
   TSLA: "Tesla Inc.",
-  AMZN: "Amazon.com Inc."
+  GOOG: "Alphabet Inc. (Class C)",
+  NFLX: "Netflix Inc.",
+  GOOGL: "Alphabet Inc. (Class A)",
+  WMT: "Walmart Inc.",
+  AMD: "Advanced Micro Devices",
+  AMZN: "Amazon.com Inc.",
+  MSFT: "Microsoft Corporation",
+  NVDA: "NVIDIA Corporation",
+  DIS: "The Walt Disney Company",
+  KO: "The Coca-Cola Company",
+  PLTR: "Palantir Technologies Inc."
 };
+
 
 const App = () => {
   const [selectedStock, setSelectedStock] = useState("AAPL");
@@ -23,23 +33,22 @@ const App = () => {
         <StockTrade stockSymbol={selectedStock} stockName={stockOptions[selectedStock]} />
       </div>
 
-      {/* Stock Search Bar */}
-      <div className="stock-search">
-        <input
-          type="text"
-          placeholder="Search stock..."
-          list="stocks"
-          onChange={(e) => {
-            const val = e.target.value.toUpperCase();
-            if (stockOptions[val]) setSelectedStock(val);
-          }}
-        />
-        <datalist id="stocks">
-          {Object.keys(stockOptions).map((stock) => (
-            <option key={stock} value={stock} />
-          ))}
-        </datalist>
-      </div>
+    {/* Stock Dropdown Selector */}
+    <div className="ticker-dropdown">
+      <select
+        className="styled-select"
+
+        value={selectedStock}
+        onChange={(e) => setSelectedStock(e.target.value)}
+      >
+        {Object.entries(stockOptions).map(([symbol, name]) => (
+          <option key={symbol} value={symbol}>
+            {name} ({symbol})
+          </option>
+        ))}
+      </select>
+    </div>
+
       <div className="right-section">
         <TradeBox stockSymbol={selectedStock} />
       </div>
