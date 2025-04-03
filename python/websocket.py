@@ -27,7 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-load_dotenv(dotenv_path="../secrets.env")
+load_dotenv(dotenv_path="secrets.env")
 
 client_id = os.getenv('AZURE_CLIENT_ID')
 tenant_id = os.getenv('AZURE_TENANT_ID')
@@ -35,9 +35,6 @@ client_secret = os.getenv('AZURE_CLIENT_SECRET')
 
 key_vault_url = "https://keyspprtrading.vault.azure.net/"
 secret_name = "storage-key"
-
-jars_path = "/opt/anaconda3/envs/trading/jars"
-azure_jars = f"{jars_path}/hadoop-azure-3.3.1.jar,{jars_path}/hadoop-azure-datalake-3.3.1.jar"
 
 def fetch_premarket_data(symbol):
     """
@@ -58,8 +55,7 @@ except Exception as e:
 
 builder = SparkSession.builder.appName("MyApp") \
     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")\
-    .config("spark.jars", azure_jars)
+    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
 spark = configure_spark_with_delta_pip(builder).getOrCreate()
 
 spark.conf.set("fs.azure.account.key.pprtradingstorage.dfs.core.windows.net", storage_key.value)
@@ -83,6 +79,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 try:
                     ticker_obj = yf.Ticker(symbol)
                     info = ticker_obj.info
+
                     price = (
                         info.get("postMarketPrice")
                         or info.get("preMarketPrice")
@@ -109,6 +106,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     print(f"Failed to fetch {symbol}: {e}")
                     prices[symbol] = {"error": str(e)}
 
+            print(prices)  # Debug output
             await websocket.send_text(json.dumps(prices))
             await asyncio.sleep(5)
     except WebSocketDisconnect:
