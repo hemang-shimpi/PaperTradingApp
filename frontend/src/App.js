@@ -1,57 +1,39 @@
-import React, { useState } from "react";
-import StockTrade from "./components/StockTrade";
-import TradeBox from "./components/TradeBox";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+
+// Import your existing components
+import Sample_Dash from "./Sample_Dash";
+
+// Import new auth components
+import Login from "./pages/auth/Login";
+import Signup from "./pages/auth/Signup";
+import Landing from "./pages/Landing";
+
+// CSS imports
 import "./index.css";
 
-
-
-const stockOptions = {
-  AAPL: "Apple Inc.",
-  META: "Meta Platforms Inc.",
-  TSLA: "Tesla Inc.",
-  GOOG: "Alphabet Inc. (Class C)",
-  NFLX: "Netflix Inc.",
-  GOOGL: "Alphabet Inc. (Class A)",
-  WMT: "Walmart Inc.",
-  AMD: "Advanced Micro Devices",
-  AMZN: "Amazon.com Inc.",
-  MSFT: "Microsoft Corporation",
-  NVDA: "NVIDIA Corporation",
-  DIS: "The Walt Disney Company",
-  KO: "The Coca-Cola Company",
-  PLTR: "Palantir Technologies Inc."
-};
-
-
 const App = () => {
-  const [selectedStock, setSelectedStock] = useState("AAPL");
+  const isAuthenticated = true; // Changed to false to test landing page
 
   return (
-    <div className="container">
-
-      <div className="left-section">
-        <StockTrade stockSymbol={selectedStock} stockName={stockOptions[selectedStock]} />
-      </div>
-
-    {/* Stock Dropdown Selector */}
-    <div className="ticker-dropdown">
-      <select
-        className="styled-select"
-
-        value={selectedStock}
-        onChange={(e) => setSelectedStock(e.target.value)}
-      >
-        {Object.entries(stockOptions).map(([symbol, name]) => (
-          <option key={symbol} value={symbol}>
-            {name} ({symbol})
-          </option>
-        ))}
-      </select>
-    </div>
-
-      <div className="right-section">
-        <TradeBox stockSymbol={selectedStock} />
-      </div>
+    <div className="app-container">
+      <Router>
+        <Routes>
+          <Route path="/home" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          
+          <Route 
+            path="/dashboard" 
+            element={isAuthenticated ? <Sample_Dash /> : <Navigate to="/login" />} 
+          />
+          
+          <Route 
+            path="/" 
+            element={<Navigate to="/home" />} 
+          />
+        </Routes>
+      </Router>
     </div>
   );
 };
