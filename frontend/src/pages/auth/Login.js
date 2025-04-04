@@ -41,16 +41,25 @@ const Login = () => {
     setError("");
     setIsLoading(true);
 
-    // Simulate API call
     try {
-      // Replace with actual authentication logic
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetch("http://127.0.0.1:8000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        }),
+      });
+      const data = await response.json();
       
-      // If login successful
-      console.log("Login successful", formData);
-      navigate("/dashboard");
+      if (data.status === "success") {
+        console.log("Login successful", data);
+        navigate("/dashboard");
+      } else {
+        setError(data.message || "Invalid email or password. Please try again.");
+      }
     } catch (err) {
-      setError("Invalid email or password. Please try again.");
+      setError("Error connecting to server");
     } finally {
       setIsLoading(false);
     }
@@ -124,7 +133,7 @@ const Login = () => {
 
         <div className="auth-options">
           <p>
-            New to Robinhood? <Link to="/signup" className="auth-link">Create an account</Link>
+            New to Bearhood? <Link to="/signup" className="auth-link">Create an account</Link>
           </p>
         </div>
       </div>

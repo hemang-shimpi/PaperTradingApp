@@ -1,9 +1,11 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import yfinance as yf
 import asyncio
 import json
 import os
+from datetime import datetime
 from pyspark.sql import SparkSession
 from delta import configure_spark_with_delta_pip
 from dotenv import load_dotenv
@@ -11,6 +13,8 @@ from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from azure.core.exceptions import ClientAuthenticationError
 from pyspark.sql.functions import current_date, date_sub
+from profit_loss import PaperTrading
+import database 
 
 # Disable origin check for WebSocket (development only)
 from starlette.websockets import WebSocket as StarletteWebSocket
@@ -18,7 +22,7 @@ StarletteWebSocket._validate_origin = lambda self: None
 
 app = FastAPI()
 
-# Allow CORS for all origins (HTTP endpoints)
+# Allow CORS for all origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,6 +30,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Initialize the SQLite database
+database.init_db()
 
 load_dotenv(dotenv_path="secrets.env")
 
@@ -63,7 +70,7 @@ spark.conf.set("fs.azure.account.key.pprtradingstorage.dfs.core.windows.net", st
 # Load the Delta table
 df = spark.read.format("delta").load("abfss://data@pprtradingstorage.dfs.core.windows.net/clean/stocks_data/")
 df.cache()
-  
+
 tickers = [
     "AAPL", "META", "TSLA", "GOOG", "NFLX", "GOOGL",
     "WMT", "AMD", "AMZN", "MSFT", "NVDA", "DIS", "KO", "PLTR"
@@ -105,7 +112,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 except Exception as e:
                     print(f"Failed to fetch {symbol}: {e}")
                     prices[symbol] = {"error": str(e)}
-
+            trader.update_prices(prices)
             print(prices)  # Debug output
             await websocket.send_text(json.dumps(prices))
             await asyncio.sleep(5)
@@ -114,6 +121,64 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print("Error:", e)
         await websocket.close()
+
+trader = PaperTrading()
+
+class TradeRequest(BaseModel):
+    action: str
+    symbol: str
+    quantity: int
+    email: str
+
+@app.post("/trade")
+def execute_trade(trade: TradeRequest):
+    print("Received trade payload:", trade.dict())
+    trader.trade(trade.action, trade.symbol, trade.quantity)
+    executed_price = trader.get_price(trade.symbol)
+    total = executed_price * trade.quantity if executed_price else 0
+
+    if trade.email:
+        trade_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"Inserting trade for {trade.email} at {trade_date}")
+        database.add_trade(trade.email, trade.action, trade.symbol, trade.quantity, executed_price, total, trade_date)
+    else:
+        print("No email provided; not recording trade.")
+
+    return {
+        "status": "success",
+        "action": trade.action,
+        "symbol": trade.symbol,
+        "quantity": trade.quantity,
+        "price": executed_price,
+        "total": total,
+        "message": "Trade executed successfully"
+    }
+
+
+class SignupRequest(BaseModel):
+    firstName: str
+    lastName: str
+    email: str
+    password: str
+
+@app.post("/signup")
+def signup(signup_data: SignupRequest):
+    success = database.add_user(signup_data.firstName, signup_data.lastName, signup_data.email, signup_data.password)
+    if success:
+        return {"status": "success", "message": "User created successfully"}
+    else:
+        return {"status": "error", "message": "Email already exists"}
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+@app.post("/login")
+def login(login_data: LoginRequest):
+    if database.verify_user(login_data.email, login_data.password):
+        return {"status": "success", "message": "Login successful"}
+    else:
+        return {"status": "error", "message": "Invalid email or password"}
 
 
 @app.get("/historical")
@@ -151,7 +216,7 @@ def get_historical_data(
             return data_list
         
         else:
-            # For periods other than current day/1week, use the Delta table.
+            # For other periods, use the Delta table.
             df_filtered = df.filter(df.Ticker == ticker)
             
             if period == "1M":

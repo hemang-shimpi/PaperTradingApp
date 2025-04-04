@@ -98,16 +98,29 @@ const Signup = () => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-
-    // Simulate API call
+    
     try {
-      // Replace with actual registration logic
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Send signup data to the backend /signup endpoint
+      const response = await fetch("http://127.0.0.1:8000/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password: formData.password
+        }),
+      });
+      const data = await response.json();
       
-      // If signup successful
-      console.log("Signup successful", formData);
-      navigate("/dashboard");
+      if (data.status === "success") {
+        console.log("Signup successful", data);
+        navigate("/dashboard");
+      } else {
+        setError(data.message || "Signup failed. Please try again.");
+      }
     } catch (err) {
+      console.error(err);
       setError("There was an error creating your account. Please try again.");
     } finally {
       setIsLoading(false);
@@ -252,7 +265,7 @@ const Signup = () => {
 
         <div className="auth-terms">
           <p>
-            This project is a academic project for Cloud Computing class and is not affiliated with any real financial institution.
+            This project is an academic project for Cloud Computing class and is not affiliated with any real financial institution.
           </p>
         </div>
       </div>
