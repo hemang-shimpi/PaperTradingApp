@@ -43,6 +43,9 @@ client_secret = os.getenv('AZURE_CLIENT_SECRET')
 key_vault_url = "https://keyspprtrading.vault.azure.net/"
 secret_name = "storage-key"
 
+jars_path = "/opt/anaconda3/envs/trading/jars"
+azure_jars = f"{jars_path}/hadoop-azure-3.3.1.jar,{jars_path}/hadoop-azure-datalake-3.3.1.jar"
+
 def fetch_premarket_data(symbol):
     """
     Fetch 1-day of 30-minute data, including pre/post market.
@@ -62,7 +65,9 @@ except Exception as e:
 
 builder = SparkSession.builder.appName("MyApp") \
     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
+    .config("spark.jars", azure_jars)
+
 spark = configure_spark_with_delta_pip(builder).getOrCreate()
 
 spark.conf.set("fs.azure.account.key.pprtradingstorage.dfs.core.windows.net", storage_key.value)
@@ -113,7 +118,6 @@ async def websocket_endpoint(websocket: WebSocket):
                     print(f"Failed to fetch {symbol}: {e}")
                     prices[symbol] = {"error": str(e)}
             trader.update_prices(prices)
-            print(prices)  # Debug output
             await websocket.send_text(json.dumps(prices))
             await asyncio.sleep(5)
     except WebSocketDisconnect:
@@ -199,7 +203,7 @@ def get_historical_data(
             pandas_df.sort_values("date", inplace=True)
             json_data = pandas_df.to_json(orient="records", date_format="iso")
             data_list = json.loads(json_data)
-            print("Returning current day data:", data_list)
+            #print("Returning current day data:", data_list)
             return data_list
         
         if period == "1W":
@@ -212,7 +216,7 @@ def get_historical_data(
             pandas_df.sort_values("date", inplace=True)
             json_data = pandas_df.to_json(orient="records", date_format="iso")
             data_list = json.loads(json_data)
-            print("Returning current day data:", data_list)
+            #print("Returning current day data:", data_list)
             return data_list
         
         else:

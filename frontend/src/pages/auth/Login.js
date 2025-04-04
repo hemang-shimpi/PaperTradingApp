@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../firebaseConfig";
 import "./auth.css";
 
 const Login = () => {
@@ -42,31 +44,55 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password
-        }),
-      });
-      const data = await response.json();
+      // Sign in with Firebase Authentication
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
       
-      if (data.status === "success") {
-        console.log("Login successful", data);
-        navigate("/dashboard");
-      } else {
-        setError(data.message || "Invalid email or password. Please try again.");
+      const user = userCredential.user;
+      
+      // Check if email is verified
+      if (!user.emailVerified) {
+        // User email is not verified
+        navigate("/verify-email");
+        return;
       }
+      
+      console.log("Login successful", user);
+      
+      // Optional: Make a backend call to sync user session if needed
+      try {
+        await fetch("http://127.0.0.1:8000/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: formData.email,
+            uid: user.uid
+          }),
+        });
+      } catch (backendErr) {
+        console.error("Backend login failed, but Firebase auth succeeded", backendErr);
+      }
+      
+      navigate("/dashboard");
     } catch (err) {
-      setError("Error connecting to server");
+      console.error(err);
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        setError("Invalid email or password. Please try again.");
+      } else if (err.code === 'auth/too-many-requests') {
+        setError("Too many failed login attempts. Please try again later.");
+      } else {
+        setError("Error logging in. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div 
+    <div
       className="auth-container"
       style={{
         backgroundPosition: `${mousePosition.x * 100}% ${mousePosition.y * 100}%`,
@@ -78,13 +104,13 @@ const Login = () => {
             <path d="M14 0C6.268 0 0 6.268 0 14s6.268 14 14 14 14-6.268 14-14S21.732 0 14 0zm0 25.2C7.812 25.2 2.8 20.188 2.8 14S7.812 2.8 14 2.8 25.2 7.812 25.2 14 20.188 25.2 14 25.2zm0-11.2v5.6h-5.6a5.6 5.6 0 115.6-5.6z"/>
           </svg>
         </div>
-      
+        
         <div className="auth-header">
           <h1>Welcome Back</h1>
         </div>
-
+        
         {error && <div className="auth-error">{error}</div>}
-
+        
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="email">Email</label>
@@ -98,7 +124,7 @@ const Login = () => {
               required
             />
           </div>
-
+          
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
@@ -111,26 +137,26 @@ const Login = () => {
               required
             />
           </div>
-
+          
           <div className="form-footer">
             <Link to="/forgot-password" className="forgot-password">
               Forgot password?
             </Link>
           </div>
-
-          <button 
-            type="submit" 
-            className="auth-button" 
+          
+          <button
+            type="submit"
+            className="auth-button"
             disabled={isLoading}
           >
             {isLoading ? "Logging in..." : "Log In"}
           </button>
         </form>
-
+        
         <div className="auth-divider">
           <span>or</span>
         </div>
-
+        
         <div className="auth-options">
           <p>
             New to Bearhood? <Link to="/signup" className="auth-link">Create an account</Link>
