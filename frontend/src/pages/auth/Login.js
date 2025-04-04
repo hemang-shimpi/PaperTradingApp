@@ -36,6 +36,8 @@ const Login = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+    // Clear error when user starts typing again
+    if (error) setError("");
   };
 
   const handleSubmit = async (e) => {

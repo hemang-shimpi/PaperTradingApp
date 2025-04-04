@@ -9,6 +9,7 @@ import Sample_Dash from "./Sample_Dash";
 import Login from "./pages/auth/Login";
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import Signup from "./pages/auth/Signup";
+import ForgotPassword from "./pages/auth/ForgotPassword";
 import Landing from "./pages/Landing";
 
 // CSS imports
@@ -47,6 +48,7 @@ const App = () => {
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<Landing />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route 
           path="/login" 
           element={isAuthenticated ? 
