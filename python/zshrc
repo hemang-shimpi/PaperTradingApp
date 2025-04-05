@@ -1,0 +1,2 @@
+export PATH=/opt/homebrew/opt/openjdk@11/bin:$PATH
+export SPARK_LOCAL_IP=127.0.0.1

@@ -1,320 +1,316 @@
-@import url('https://fonts.googleapis.com/css2?family=Circular+Std:wght@400;600&display=swap');
-
-body {
-  background-color: #000000;
-  color: white;
-  font-family: 'avenir', sans-serif;
+/* RESET & GLOBAL STYLES */
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
-.container {
+html, body {
+  height: 100%;
+  zoom: 0.90;
+}
+
+body {
+  background-color: #000;
+  color: #fff;
+  font-family: "Avenir", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* App Container */
+.app-container {
+  min-height: 100vh;
   display: flex;
-  height: 100vh;
-  flex-direction: row;
+  flex-direction: column;
 }
 
-.stock-search {
-  text-align: center;
-  margin: 150px 50px;
-}
-
-.stock-search input {
-  padding: 15px;
-  border-radius: 200px;
-
-  border: 2px solid grey;
-  background: black;
-  color: limegreen;
-}
-
-.stock-details {
-  display: flex;
-  padding-bottom: 70px;
-  padding-left: 40px;
-}
-
-.left-section {
-  flex: 2.5;
-  padding: 130px;
-}
-
-.right-section {
+/* StockTrade Page */
+.stock-trade-page {
   flex: 1;
-  background-color: #1c1c1c;
-  padding: 30px;
-  padding-top: 50px;
-  padding-bottom: 120px;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-  border: 2px solid #1c1c1c;
-  border-radius: 40px;
-  margin: 90px;
-  height: 70vh; /* Stretches fully down */
+  display: flex;
+  flex-direction: column;
 }
-/* Stock Info */
+
+/* MAIN CONTENT (Left & Right Columns) */
+.main-content {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+}
+
+/* LEFT SECTION: STOCK INFO */
 .stock-info {
-  text-align: left;
-}
-
-.price {
-  font-size: 58px;
-  font-weight: bold;
-  font-family: 'Circular Std', sans-serif;
-  display: block;
-}
-
-.change {
-  font-size: 26px; /* Increase size for better visibility */
-  font-weight: bold;
-  padding: 2px 0; /* Slight padding for alignment */
-  display: block; /* Ensures it appears below the price */
-  margin: -62px;
-  padding-left: 60px;
-}
-
-.change.positive {
-  color: limegreen;
-}
-
-.change.negative {
-  color: red;
-}
-
-
-.price {
-  font-size: 58px;
-  font-weight: bold;
-}
-
-.graph-container {
-  margin: 20px 0;
-  height: 550px;
-  
-   
-}
-
-.timeframe-buttons {
+  flex: 2;
   display: flex;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-.timeframe-buttons button {
-  background-color: black;
-  color: grey;
-  border: 0px solid limegreen;
-  padding: 12px 30px;
-  border-radius: 20px;
-  margin-right: 10px;
-  font-size: 18px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.timeframe-buttons .active {
-  background-color: limegreen;
-  color: black;
-  border: 2px solid limegreen;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-  transform: scale(1.03);
-}
-
-.stock-stats {
-  text-align: center;
-  margin-top: 20px;
-}
-
-.stock-stats p {
-  margin: 10px 0;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-/* Trade Box */
-.trade-box {
-  padding: 20px;
-  background-color: #1c1c1c;
-  border-radius: 30px;
-  height: 43%;
-}
-
-/* Tabs */
-.trade-tabs {
-  display: flex;
-  width: 96%;
-  margin: 0 auto;
+  flex-direction: column;
   justify-content: space-between;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #1c1c1c;
-  padding-bottom: 10px;
-  font-family: 'Circular Std', sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: white;
-  text-align: center;
-  background-color: #121212;
-  border-radius: 200px;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-  margin-top: 20px;
-  padding: 10px;
-  margin-bottom: 20px;
-  transition: background-color 0.3s ease;
+  margin-right: 4rem;
+  padding: 2rem 0;
 }
 
-.trade-tabs button {
-  flex: 1;
-  padding: 30px;
-  font-size: 20px;
-  font-weight: 600;
-  border: none;
-  background-color: #121212;
-  color: white;
-  border-bottom: 7px solid transparent;
-  border-radius: 500px;
-  cursor: pointer;
+.top-section {
+  /* Top portion for header & chart */
 }
 
-.trade-tabs .active {
-  background-color: limegreen;
-  border-bottom: 0.5px solid black;
-}
-
-form {
-  margin-top: 40px;
+.header-container {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  background-color: #1c1c1c;
-  padding: 20px;
-  border-radius: 20px;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
-  font-family: 'Circular Std', sans-serif;
-  font-size: 18px;
-  color: white;
+  margin: 0 3rem 4rem;
+}
+
+.stock-header {
+}
+
+.stock-title {
+  font-size: 2.5rem;
   font-weight: 600;
-  transition: background-color 0.3s ease;
+  margin-bottom: 0.2rem;
 }
 
-form label {
-  display: inline-block;  /* Changed from block to inline-block */
-  font-size: 20px;
-  margin-right: 20px;  /* Space between label and input */
-}
-form input[type="number"] {
-  width: 20%;  /* Adjust width for inline alignment */
-  padding: 12px;
-  border-radius: 800px;
-  background: black;
-  color: limegreen;
-  border: 2px solid grey;
-  margin-bottom: 4px;
-  font-size: 16px;
+.stock-price {
+  font-size: 4rem;
+  margin-bottom: 0.2rem;
 }
 
+.stock-change {
+}
 
-
-form button {
-  width: 50%;
-  padding: 12px;
-  background-color: limegreen;
-  color: black;
-  border: none;
+.ticker-dropdown-top .ticker-select {
+  background-color: #000;
+  color: #fff;
+  border: 1px solid #333;
+  padding: 0.7rem 0.75rem;
+  border-radius: 80px;
+  font-size: 1.2rem;
+  position: relative;
+  top: -60px;
+  right: -70px;
+  appearance: none;
+  outline: none;
   cursor: pointer;
-  border-radius: 100px;
-  font-size: 18px;
-  font-weight: bold;
 }
 
-/* Add the following to style the container of the label and input */
-.quantity-container {
+/* CHART */
+.chart-container {
+  background-color: #000;
+  margin: 0 3rem;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 0px solid #333;
+  height: 300px;
+}
+
+.fake-chart {
+  background-color: #000;
+  border: 1px solid #39FF14;
+  color: #39FF14;
+  text-align: center;
+  padding: 1rem;
+  border-radius: 80px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* BOTTOM SECTION: TIMELINE & KEY STATS */
+.bottom-section {
+  margin: 0 2rem;
+  margin-top: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.timeline-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.timeline-btn {
+  background-color: transparent;
+  border: 0px solid #333;
+  color: #fff;
+  padding: 0.7rem 1.2rem;
+  border-radius: 200px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.timeline-btn.active {
+  background-color: #39FF14;
+  border-color: #39FF14;
+  color: #000;
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid #333;
+  margin: 0.9rem 0;
+}
+
+.key-stats-section {
+  margin-top: 0.5rem;
+}
+
+.key-stats-title {
+  font-size: 1.5rem;
+  margin-bottom: 0.7rem;
+  font-weight: 300;
+}
+
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.stat-card {
+  background-color: #111;
+  border: 1px solid #333;
+  border-radius: 20px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.stat-card span:first-child {
+  display: block;
+  font-weight: 400;
+  margin-bottom: 0.5rem;
+}
+
+/* RIGHT SECTION (Trade Box) */
+.trade-box-wrapper {
+  flex: 1;
   display: flex;
   justify-content: center;
-  align-items: center;
-  margin-bottom: 10px; /* Optional space between inputs */
+  align-items: stretch;
+  border-left: 1px solid #444;
+  padding-left: 1rem;
 }
 
-.summary {
-  margin-top: 15px;
-  background: #252525;
-  padding: 10px;
+/* TRADE BOX STYLES */
+.trade-box-container {
+  background-color: #111;
+  border: 0px solid #333;
+  border-radius: 20px;
+  padding: 2rem;
+  min-width: 340px;
+  max-width: 600px;
+  width: 30vw;
+  max-height: 900px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  margin: 3rem 0;
+  color: #fff;
+}
+
+.buy-sell-tabs {
+  display: flex;
+  margin-bottom: 2rem;
+}
+
+.tab {
+  flex: 1;
+  background-color: #222;
+  color: #fff;
+  border: 1px solid #333;
+  padding: 2rem;
+  cursor: pointer;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: background-color 0.2s;
+  margin-right: 0.5rem;
   border-radius: 10px;
+}
+
+.tab:last-child {
+  margin-right: 0;
+}
+
+.tab.active {
+  background-color: #39FF14;
+  color: #000;
+}
+
+.trade-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+}
+
+.trade-inputs label {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: #fff;
+}
+
+.trade-inputs select,
+.trade-inputs input {
+  background-color: #222;
+  border: 0px solid #333;
+  border-radius: 10px;
+  color: #fff;
+  padding: 1.5rem;
+  outline: none;
+  font-size: 1.1rem;
+}
+
+.estimated-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.1rem;
+  margin-top: 1rem;
+  color: #fff;
+}
+
+.review-order-btn {
+  background-color: #39FF14;
+  color: #000;
+  border: none;
+  padding: 1.7rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
   text-align: center;
 }
 
-/* CSS for Stat box and Dropdown menu */
-
-.stock-stats-container {
-  margin-top: 2rem;
-  color: white;
-  width: 100%;
-  max-width: 1000px;
-  padding: 0 1rem;
+.review-order-btn:hover {
+  background-color: #32e01b;
 }
 
-.stock-stats-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid #444;
-  padding-bottom: 0.5rem;
+.buying-power,
+.account-type {
+  font-size: 1.1rem;
+  color: #fff;
+  margin-bottom: 0.5rem;
+  text-align: center;
 }
 
-.stock-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+/* RESPONSIVE ADJUSTMENTS */
+@media (max-width: 992px) {
+  .main-content {
+    flex-direction: column;
+  }
+  .trade-box-wrapper {
+    border-left: none;
+    padding-left: 0;
+    margin-top: 1rem;
+    align-items: center;
+  }
 }
 
-.stock-stat {
-  display: flex;
-  flex-direction: column;
-  font-size: 0.95rem;
-  background: #111;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  border: 1px solid #222;
+@media (max-width: 600px) {
+  .stats-cards {
+    grid-template-columns: 1fr;
+  }
 }
-
-.stock-stat .label {
-  color: #aaa;
-  font-size: 0.8rem;
-  margin-bottom: 0.25rem;
-}
-.ticker-dropdown {
-  margin: 20px auto;
-  text-align: right;
-  padding: 0 20px;
-}
-
-.styled-select {
-  background-color: #111;
-  color: white;
-  border: 1px solid #333;
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 1rem;
-  font-weight: bold;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  max-width: 240px;
-  width: 100%;
-  outline: none;
-}
-
-.styled-select:hover {
-  border-color: limegreen;
-}
-
-.styled-select:focus {
-  border-color: #00ff88;
-  box-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
-}
-
