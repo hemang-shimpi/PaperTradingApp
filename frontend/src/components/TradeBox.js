@@ -14,18 +14,19 @@ function TradeBox({ stockSymbol}) {
     <div className="trade-box-container">
       {/* Buy/Sell Tabs */}
       <div className="buy-sell-tabs">
-        <button
-          className={`tab ${buyOrSell === "buy" ? "active" : ""}`}
+      <button
+        className={`tab ${buyOrSell === "buy" ? "buy-active" : ""}`}
           onClick={() => handleToggle("buy")}
         >
-          Buy {stockSymbol}
-        </button>
-        <button
-          className={`tab ${buyOrSell === "sell" ? "active" : ""}`}
+      Buy {stockSymbol}
+      </button>
+      <button
+          className={`tab ${buyOrSell === "sell" ? "sell-active" : ""}`}
           onClick={() => handleToggle("sell")}
         >
           Sell {stockSymbol}
-        </button>
+      </button>
+
       </div>
 
       <span></span>
