@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  ReferenceLine,
-  Area,
-  AreaChart
+  ReferenceLine
 } from "recharts";
 
 const StockTrade = ({ stockSymbol = "AAPL", stockName = "Apple Inc.", isTradeBoxOpen }) => {
@@ -19,6 +19,7 @@ const StockTrade = ({ stockSymbol = "AAPL", stockName = "Apple Inc.", isTradeBox
   const [isHovering, setIsHovering] = useState(false);
   const [hoverPrice, setHoverPrice] = useState(null);
   const [hoverDate, setHoverDate] = useState(null);
+  const [chartType, setChartType] = useState("line"); // New state for chart type
 
   useEffect(() => {
     const fetchHistorical = async () => {
@@ -27,9 +28,19 @@ const StockTrade = ({ stockSymbol = "AAPL", stockName = "Apple Inc.", isTradeBox
         const data = await res.json();
         const mapped = data.map(item => {
           const dateObj = new Date(item.date);
-          const label = (selectedTimeframe === "1D" || selectedTimeframe === "1W")
-            ? dateObj.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
-            : dateObj.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+          const label =
+            selectedTimeframe === "1D" || selectedTimeframe === "1W"
+              ? dateObj.toLocaleString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit"
+                })
+              : dateObj.toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric"
+                });
           return {
             rawDate: dateObj,
             time: label,
@@ -58,7 +69,7 @@ const StockTrade = ({ stockSymbol = "AAPL", stockName = "Apple Inc.", isTradeBox
   }, [stockSymbol]);
 
   const formatLargeNumber = (num) => {
-    if (typeof num !== 'number') return "--";
+    if (typeof num !== "number") return "--";
     if (num >= 1_000_000_000) return `${(num / 1_000_000_000).toFixed(2)}B`;
     if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
     return num.toLocaleString();
@@ -82,10 +93,10 @@ const StockTrade = ({ stockSymbol = "AAPL", stockName = "Apple Inc.", isTradeBox
 
   // Get min and max for chart
   const minPrice = priceHistory.length > 0 
-    ? Math.min(...priceHistory.map(item => item.price)) 
+    ? Math.min(...priceHistory.map((item) => item.price)) 
     : 0;
   const maxPrice = priceHistory.length > 0 
-    ? Math.max(...priceHistory.map(item => item.price)) 
+    ? Math.max(...priceHistory.map((item) => item.price))
     : 0;
 
   // Chart theme color based on positive/negative
@@ -94,10 +105,12 @@ const StockTrade = ({ stockSymbol = "AAPL", stockName = "Apple Inc.", isTradeBox
   const chartGradientEnd = isPositive ? "rgba(0, 200, 83, 0.1)" : "rgba(255, 82, 82, 0.1)";
 
   return (
-    <div className={`stock-container ${isTradeBoxOpen ? 'trade-box-open' : ''}`}>
+    <div className={`stock-container ${isTradeBoxOpen ? "trade-box-open" : ""}`}>
       <div className="stock-header">
         <div className="stock-title">
-          <h1>{stockSymbol} <span className="stock-name">({stockName})</span></h1>
+          <h1>
+            {stockSymbol} <span className="stock-name">({stockName})</span>
+          </h1>
         </div>
         <div className="price-display">
           <p className="price">${displayPrice?.toFixed(2) || "--"} USD</p>
@@ -116,84 +129,185 @@ const StockTrade = ({ stockSymbol = "AAPL", stockName = "Apple Inc.", isTradeBox
             livePrice && <div className="live-indicator">LIVE</div>
           )}
         </div>
-        
-        <ResponsiveContainer width="100%" height={800} className="responsive-chart">
-          <AreaChart
-            data={priceHistory}
-            onMouseMove={(e) => {
-              if (e.activePayload && e.activePayload.length > 0) {
-                setIsHovering(true);
-                setHoverPrice(e.activePayload[0].value);
-                setHoverDate(e.activePayload[0].payload.time);
-              }
-            }}
-            onMouseLeave={() => {
-              setIsHovering(false);
-              setHoverPrice(null);
-              setHoverDate(null);
-            }}
-            margin={{ top: 20, right: 20, left: 20, bottom: 0 }}
+
+        {/* Chart Toggle Controls */}
+        <div
+          className="chart-toggle-controls"
+          style={{ textAlign: "center", marginBottom: "10px" }}
+        >
+          <div className="chart-type-buttons">
+          <button
+            onClick={() => setChartType("line")}
+            className={chartType === "line" ? "active" : ""}
+            style={{ marginRight: "10px" }}
           >
-            <defs>
-              <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={chartGradientStart} stopOpacity={0.8}/>
-                <stop offset="95%" stopColor={chartGradientEnd} stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <XAxis 
-              dataKey="time" 
-              stroke="#555"
-              tick={{ fill: '#aaa', fontSize: 12 }}
-              tickLine={{ stroke: '#333' }}
-              axisLine={{ stroke: '#333' }}
-              tickCount={5}
-            />
-            <YAxis 
-              domain={[
-                minPrice => (minPrice * 0.995).toFixed(2), 
-                maxPrice => (maxPrice * 1.005).toFixed(2)
-              ]}
-              tick={{ fill: '#aaa', fontSize: 12 }}
-              tickLine={{ stroke: '#333' }}
-              axisLine={{ stroke: '#333' }}
-              tickCount={5}
-              tickFormatter={(value) => `$${value.toFixed(2)}`}
-              width={60}
-            />
-            <Tooltip 
-              content={({ active, payload }) => {
-                if (active && payload && payload.length) {
-                  return (
-                    <div className="custom-tooltip">
-                      <p className="price-value">${payload[0].value.toFixed(2)}</p>
-                      <p className="time-value">{payload[0].payload.time}</p>
-                    </div>
-                  );
+            Line Chart
+          </button>
+          <button
+            onClick={() => setChartType("area")}
+            className={chartType === "area" ? "active" : ""}
+          >
+            Area Chart
+          </button>
+        </div>
+        </div>
+
+        <ResponsiveContainer width="100%" height={800} className="responsive-chart">
+          {chartType === "line" ? (
+            <LineChart
+              data={priceHistory}
+              onMouseMove={(e) => {
+                if (e.activePayload && e.activePayload.length > 0) {
+                  setIsHovering(true);
+                  setHoverPrice(e.activePayload[0].value);
+                  setHoverDate(e.activePayload[0].payload.time);
                 }
-                return null;
               }}
-            />
-            <ReferenceLine 
-              y={firstPoint} 
-              stroke="#666" 
-              strokeDasharray="3 3" 
-              strokeWidth={1} 
-            />
-            <Area 
-              type="monotone" 
-              dataKey="price" 
-              stroke={chartColor} 
-              fillOpacity={1}
-              fill="url(#colorPrice)"
-              strokeWidth={2}
-              activeDot={{ 
-                r: 6, 
-                strokeWidth: 2, 
-                stroke: '#fff',
-                fill: chartColor 
+              onMouseLeave={() => {
+                setIsHovering(false);
+                setHoverPrice(null);
+                setHoverDate(null);
               }}
-            />
-          </AreaChart>
+              margin={{ top: 20, right: 20, left: 20, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chartGradientStart} stopOpacity={0.8} />
+                  <stop offset="95%" stopColor={chartGradientEnd} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis
+                dataKey="time"
+                stroke="#555"
+                tick={{ fill: "#aaa", fontSize: 12 }}
+                tickLine={{ stroke: "#333" }}
+                axisLine={{ stroke: "#333" }}
+                tickCount={5}
+              />
+              <YAxis
+                domain={[
+                  (min) => (min * 0.995).toFixed(2),
+                  (max) => (max * 1.005).toFixed(2)
+                ]}
+                tick={{ fill: "#aaa", fontSize: 12 }}
+                tickLine={{ stroke: "#333" }}
+                axisLine={{ stroke: "#333" }}
+                tickCount={5}
+                tickFormatter={(value) => `$${value.toFixed(2)}`}
+                width={60}
+              />
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="custom-tooltip">
+                        <p className="price-value">${payload[0].value.toFixed(2)}</p>
+                        <p className="time-value">{payload[0].payload.time}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <ReferenceLine
+                y={firstPoint}
+                stroke="#666"
+                strokeDasharray="3 3"
+                strokeWidth={1}
+              />
+              <Line
+                type="monotone"
+                dataKey="price"
+                stroke={chartColor}
+                fillOpacity={1}
+                fill="url(#colorPrice)"
+                strokeWidth={2}
+                activeDot={{
+                  r: 6,
+                  strokeWidth: 2,
+                  stroke: "#fff",
+                  fill: chartColor
+                }}
+              />
+            </LineChart>
+          ) : (
+            <AreaChart
+              data={priceHistory}
+              onMouseMove={(e) => {
+                if (e.activePayload && e.activePayload.length > 0) {
+                  setIsHovering(true);
+                  setHoverPrice(e.activePayload[0].value);
+                  setHoverDate(e.activePayload[0].payload.time);
+                }
+              }}
+              onMouseLeave={() => {
+                setIsHovering(false);
+                setHoverPrice(null);
+                setHoverDate(null);
+              }}
+              margin={{ top: 20, right: 20, left: 20, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="colorPriceArea" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chartGradientStart} stopOpacity={0.8} />
+                  <stop offset="95%" stopColor={chartGradientEnd} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis
+                dataKey="time"
+                stroke="#555"
+                tick={{ fill: "#aaa", fontSize: 12 }}
+                tickLine={{ stroke: "#333" }}
+                axisLine={{ stroke: "#333" }}
+                tickCount={5}
+              />
+              <YAxis
+                domain={[
+                  (min) => (min * 0.995).toFixed(2),
+                  (max) => (max * 1.005).toFixed(2)
+                ]}
+                tick={{ fill: "#aaa", fontSize: 12 }}
+                tickLine={{ stroke: "#333" }}
+                axisLine={{ stroke: "#333" }}
+                tickCount={5}
+                tickFormatter={(value) => `$${value.toFixed(2)}`}
+                width={60}
+              />
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="custom-tooltip">
+                        <p className="price-value">${payload[0].value.toFixed(2)}</p>
+                        <p className="time-value">{payload[0].payload.time}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <ReferenceLine
+                y={firstPoint}
+                stroke="#666"
+                strokeDasharray="3 3"
+                strokeWidth={1}
+              />
+              <Area
+                type="monotone"
+                dataKey="price"
+                stroke={chartColor}
+                fillOpacity={1}
+                fill="url(#colorPriceArea)"
+                strokeWidth={2}
+                activeDot={{
+                  r: 6,
+                  strokeWidth: 2,
+                  stroke: "#fff",
+                  fill: chartColor
+                }}
+              />
+            </AreaChart>
+          )}
         </ResponsiveContainer>
       </div>
 
@@ -214,15 +328,42 @@ const StockTrade = ({ stockSymbol = "AAPL", stockName = "Apple Inc.", isTradeBox
       <div className="stock-stats-container">
         <h3 className="stock-stats-title">Key statistics</h3>
         <div className="stock-stats-grid">
-          <div className="stock-stat"><span className="label">Market cap</span><span>{formatLargeNumber(stats.marketCap)}</span></div>
-          <div className="stock-stat"><span className="label">P/E Ratio</span><span>{stats.peRatio?.toFixed(2) || "--"}</span></div>
-          <div className="stock-stat"><span className="label">Avg Volume</span><span>{formatLargeNumber(stats.averageVolume)}</span></div>
-          <div className="stock-stat"><span className="label">Volume</span><span>{formatLargeNumber(stats.volume)}</span></div>
-          <div className="stock-stat"><span className="label">High Today</span><span>${stats.high?.toFixed(2) || "--"}</span></div>
-          <div className="stock-stat"><span className="label">Low Today</span><span>${stats.low?.toFixed(2) || "--"}</span></div>
-          <div className="stock-stat"><span className="label">52W High</span><span>${stats["52WeekHigh"]?.toFixed(2) || "--"}</span></div>
-          <div className="stock-stat"><span className="label">52W Low</span><span>${stats["52WeekLow"]?.toFixed(2) || "--"}</span></div>
-          <div className="stock-stat"><span className="label">Open</span><span>${stats.open?.toFixed(2) || "--"}</span></div>
+          <div className="stock-stat">
+            <span className="label">Market cap</span>
+            <span>{formatLargeNumber(stats.marketCap)}</span>
+          </div>
+          <div className="stock-stat">
+            <span className="label">P/E Ratio</span>
+            <span>{stats.peRatio?.toFixed(2) || "--"}</span>
+          </div>
+          <div className="stock-stat">
+            <span className="label">Avg Volume</span>
+            <span>{formatLargeNumber(stats.averageVolume)}</span>
+          </div>
+          <div className="stock-stat">
+            <span className="label">Volume</span>
+            <span>{formatLargeNumber(stats.volume)}</span>
+          </div>
+          <div className="stock-stat">
+            <span className="label">High Today</span>
+            <span>${stats.high?.toFixed(2) || "--"}</span>
+          </div>
+          <div className="stock-stat">
+            <span className="label">Low Today</span>
+            <span>${stats.low?.toFixed(2) || "--"}</span>
+          </div>
+          <div className="stock-stat">
+            <span className="label">52W High</span>
+            <span>${stats["52WeekHigh"]?.toFixed(2) || "--"}</span>
+          </div>
+          <div className="stock-stat">
+            <span className="label">52W Low</span>
+            <span>${stats["52WeekLow"]?.toFixed(2) || "--"}</span>
+          </div>
+          <div className="stock-stat">
+            <span className="label">Open</span>
+            <span>${stats.open?.toFixed(2) || "--"}</span>
+          </div>
         </div>
       </div>
     </div>

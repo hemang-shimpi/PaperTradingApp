@@ -245,6 +245,20 @@ body {
   transform: scale(1.03);
 }
 
+.chart-type-buttons{
+  display: flex;
+  justify-content: center;
+}
+
+.chart-type-buttons button {
+  background-color: black;
+  color: grey;
+  border: 0px solid limegreen;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
 .stock-stats {
   text-align: center;
   margin-top: 20px;
