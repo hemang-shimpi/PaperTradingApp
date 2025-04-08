@@ -6,9 +6,12 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  ReferenceLine,
+  Area,
+  AreaChart
 } from "recharts";
 
-const StockTrade = ({ stockSymbol = "AAPL", stockName = "Apple Inc." }) => {
+const StockTrade = ({ stockSymbol = "AAPL", stockName = "Apple Inc.", isTradeBoxOpen }) => {
   const [selectedTimeframe, setSelectedTimeframe] = useState("1D");
   const [priceHistory, setPriceHistory] = useState([]);
   const [stats, setStats] = useState({});
@@ -77,71 +80,135 @@ const StockTrade = ({ stockSymbol = "AAPL", stockName = "Apple Inc." }) => {
     ? `${rawChange >= 0 ? "+" : "-"}${Math.abs(percentChange).toFixed(2)}%`
     : "--";
 
+  // Get min and max for chart
+  const minPrice = priceHistory.length > 0 
+    ? Math.min(...priceHistory.map(item => item.price)) 
+    : 0;
+  const maxPrice = priceHistory.length > 0 
+    ? Math.max(...priceHistory.map(item => item.price)) 
+    : 0;
+
+  // Chart theme color based on positive/negative
+  const chartColor = isPositive ? "#00c853" : "#ff5252";
+  const chartGradientStart = isPositive ? "rgba(0, 200, 83, 0.8)" : "rgba(255, 82, 82, 0.8)";
+  const chartGradientEnd = isPositive ? "rgba(0, 200, 83, 0.1)" : "rgba(255, 82, 82, 0.1)";
+
   return (
-    <div className="stock-container">
-      <div className="stock-info">
-        <h1>{stockSymbol} ({stockName})</h1>
-        <p className="price">${displayPrice?.toFixed(2) || "--"} USD</p>
-        {displayDate && <p style={{ fontSize: "14px", color: "#aaa" }}>{displayDate}</p>}
+    <div className={`stock-container ${isTradeBoxOpen ? 'trade-box-open' : ''}`}>
+      <div className="stock-header">
+        <div className="stock-title">
+          <h1>{stockSymbol} <span className="stock-name">({stockName})</span></h1>
+        </div>
+        <div className="price-display">
+          <p className="price">${displayPrice?.toFixed(2) || "--"} USD</p>
+          {displayDate && <p className="date-indicator">{displayDate}</p>}
+          <p className={`change ${isPositive ? "positive" : "negative"}`}>
+            {formattedChange} ({formattedPercent})
+          </p>
+        </div>
       </div>
 
-      <div className="stock-details">
-        <p className={`change ${isPositive ? "positive" : "negative"}`} style={{ marginLeft: "10px" }}>
-          {formattedChange} ({formattedPercent})
-        </p>
-      </div>
-
-      <div className="graph-container">
-      <ResponsiveContainer width="100%" height={400}>
-        <LineChart
-          data={priceHistory}
-          onMouseMove={(e) => {
-            if (e.activePayload && e.activePayload.length > 0) {
-              setIsHovering(true);
-              setHoverPrice(e.activePayload[0].value);
-              setHoverDate(e.activePayload[0].payload.time);
-            }
-          }}
-          onMouseLeave={() => {
-            setIsHovering(false);
-            setHoverPrice(null);
-            setHoverDate(null);
-          }}
-        >
-          <XAxis dataKey="time" stroke="transparent" tick={false} />
-          <YAxis
-            stroke="transparent"
-            tick={false}
-            domain={([min, max]) => {
-              const padding = (max - min) * 0.1 || 1;
-              return [min - padding, max + padding];
+      <div className="chart-container">
+        <div className="chart-overlay">
+          {isHovering ? (
+            <div className="hover-price">${hoverPrice?.toFixed(2)}</div>
+          ) : (
+            livePrice && <div className="live-indicator">LIVE</div>
+          )}
+        </div>
+        
+        <ResponsiveContainer width="100%" height={800} className="responsive-chart">
+          <AreaChart
+            data={priceHistory}
+            onMouseMove={(e) => {
+              if (e.activePayload && e.activePayload.length > 0) {
+                setIsHovering(true);
+                setHoverPrice(e.activePayload[0].value);
+                setHoverDate(e.activePayload[0].payload.time);
+              }
             }}
-          />
-          <Tooltip contentStyle={{ display: "none" }} />
-          <Line
-            type="monotone"
-            dataKey="price"
-            stroke={rawChange != null ? (rawChange >= 0 ? "#00ff00" : "#ff0000") : "gray"}
-            strokeWidth={2}
-            dot={{ r: 0 }}
-            activeDot={{ r: 4, fill: rawChange >= 0 ? "#00ff00" : "#ff0000" }}
-          />
-          
-        </LineChart>
-      </ResponsiveContainer>
-
+            onMouseLeave={() => {
+              setIsHovering(false);
+              setHoverPrice(null);
+              setHoverDate(null);
+            }}
+            margin={{ top: 20, right: 20, left: 20, bottom: 0 }}
+          >
+            <defs>
+              <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={chartGradientStart} stopOpacity={0.8}/>
+                <stop offset="95%" stopColor={chartGradientEnd} stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <XAxis 
+              dataKey="time" 
+              stroke="#555"
+              tick={{ fill: '#aaa', fontSize: 12 }}
+              tickLine={{ stroke: '#333' }}
+              axisLine={{ stroke: '#333' }}
+              tickCount={5}
+            />
+            <YAxis 
+              domain={[
+                minPrice => (minPrice * 0.995).toFixed(2), 
+                maxPrice => (maxPrice * 1.005).toFixed(2)
+              ]}
+              tick={{ fill: '#aaa', fontSize: 12 }}
+              tickLine={{ stroke: '#333' }}
+              axisLine={{ stroke: '#333' }}
+              tickCount={5}
+              tickFormatter={(value) => `$${value.toFixed(2)}`}
+              width={60}
+            />
+            <Tooltip 
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="custom-tooltip">
+                      <p className="price-value">${payload[0].value.toFixed(2)}</p>
+                      <p className="time-value">{payload[0].payload.time}</p>
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
+            <ReferenceLine 
+              y={firstPoint} 
+              stroke="#666" 
+              strokeDasharray="3 3" 
+              strokeWidth={1} 
+            />
+            <Area 
+              type="monotone" 
+              dataKey="price" 
+              stroke={chartColor} 
+              fillOpacity={1}
+              fill="url(#colorPrice)"
+              strokeWidth={2}
+              activeDot={{ 
+                r: 6, 
+                strokeWidth: 2, 
+                stroke: '#fff',
+                fill: chartColor 
+              }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
 
-      <div className="timeframe-buttons">
-        {["1D", "1W", "1M", "3M", "YTD", "1Y", "5Y", "MAX"].map((tf) => (
-          <button
-            key={tf}
-            className={selectedTimeframe === tf ? "active" : ""}
-            onClick={() => setSelectedTimeframe(tf)}
-          >
-            {tf}
-          </button>
-        ))}
+      <div className="timeframe-controls">
+        <div className="timeframe-buttons">
+          {["1D", "1W", "1M", "3M", "YTD", "1Y", "5Y", "MAX"].map((tf) => (
+            <button
+              key={tf}
+              className={selectedTimeframe === tf ? "active" : ""}
+              onClick={() => setSelectedTimeframe(tf)}
+            >
+              {tf}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="stock-stats-container">

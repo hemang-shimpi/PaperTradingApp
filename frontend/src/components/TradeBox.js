@@ -45,7 +45,6 @@ const TradeBox = ({ stockSymbol, userEmail }) => {
 
   return (
     <div className="trade-box">
-      {/* Trade Type Tabs */}
       <div className="trade-tabs">
         <button className={`tab ${tradeType === "BUY" ? "active" : ""}`} onClick={() => setTradeType("BUY")}>BUY</button>
         <button className={`tab ${tradeType === "SELL" ? "active" : ""}`} onClick={() => setTradeType("SELL")}>SELL</button>
@@ -59,6 +58,7 @@ const TradeBox = ({ stockSymbol, userEmail }) => {
             type="number"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
+            min={0}
             required
           />
         </div>

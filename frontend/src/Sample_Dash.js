@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
-import { auth } from "./firebaseConfig"; // Adjust the path as needed
+import { auth } from "./firebaseConfig";
 import StockTrade from "./components/StockTrade";
 import TradeBox from "./components/TradeBox";
 import "./index.css";
@@ -26,6 +26,7 @@ const stockOptions = {
 const Sample_Dash = ({ user }) => {
   const [selectedStock, setSelectedStock] = useState("AAPL");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isTradeBoxOpen, setIsTradeBoxOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -40,43 +41,67 @@ const Sample_Dash = ({ user }) => {
     }
   };
 
+  const toggleTradeBox = () => {
+    setIsTradeBoxOpen(!isTradeBoxOpen);
+  };
+
   return (
-    <div className="container">
-      {/* Header with user info and logout */}
-      <div className="dashboard-header">
-        <div className="user-info">
-          {user && <span>Welcome, {user.email}</span>}
+    <div className="dashboard-container">
+      {/* Navigation Bar */}
+      <nav className="navbar">
+        <div className="navbar-logo">Bearhood</div>
+        <div className="navbar-items">
+          <div className="navbar-stock-selector">
+            <select
+              className="styled-select"
+              value={selectedStock}
+              onChange={(e) => setSelectedStock(e.target.value)}
+            >
+              {Object.entries(stockOptions).map(([symbol, name]) => (
+                <option key={symbol} value={symbol}>
+                  {name} ({symbol})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="navbar-links">
+            <a href="/dashboard" className="nav-link active">Dashboard</a>
+            <a href="/portfolio" className="nav-link">Portfolio</a>
+          </div>
+          <div className="navbar-user">
+            {user && <span className="user-greeting">Welcome, {user.email.split('@')[0]}</span>}
+            <button 
+              className="logout-button" 
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+            >
+              {isLoggingOut ? "..." : "Logout"}
+            </button>
+          </div>
         </div>
+      </nav>
+
+      <div className="content-container">
+        <div className={`main-content ${isTradeBoxOpen ? 'trade-box-open' : ''}`}>
+          <StockTrade stockSymbol={selectedStock} stockName={stockOptions[selectedStock]} />
+        </div>
+
+        {/* Trade Box Toggle Button */}
         <button 
-          className="logout-button" 
-          onClick={handleLogout}
-          disabled={isLoggingOut}
+          className={`trade-box-toggle ${isTradeBoxOpen ? 'open' : ''}`} 
+          onClick={toggleTradeBox}
+          aria-label={isTradeBoxOpen ? "Close trade panel" : "Open trade panel"}
         >
-          {isLoggingOut ? "Logging out..." : "Logout"}
+          {isTradeBoxOpen ? '→' : '←'}
         </button>
-      </div>
 
-      <div className="left-section">
-        <StockTrade stockSymbol={selectedStock} stockName={stockOptions[selectedStock]} />
-      </div>
-
-      {/* Stock Dropdown Selector */}
-      <div className="ticker-dropdown">
-        <select
-          className="styled-select"
-          value={selectedStock}
-          onChange={(e) => setSelectedStock(e.target.value)}
-        >
-          {Object.entries(stockOptions).map(([symbol, name]) => (
-            <option key={symbol} value={symbol}>
-              {name} ({symbol})
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="right-section">
-        <TradeBox stockSymbol={selectedStock} />
+        {/* Collapsible Trade Box */}
+        <div className={`trade-box-panel ${isTradeBoxOpen ? 'open' : ''}`}>
+          <div className="trade-box-container">
+            <h2 className="trade-box-title">Trading: {selectedStock}</h2>
+            <TradeBox stockSymbol={selectedStock} userEmail={user.email} />
+          </div>
+        </div>
       </div>
     </div>
   );
