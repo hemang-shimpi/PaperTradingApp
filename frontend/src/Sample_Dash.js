@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "./firebaseConfig";
 import StockTrade from "./components/StockTrade";
 import TradeBox from "./components/TradeBox";
+import { MarketDataContext } from "./components/MarketDataContext";
 import "./index.css";
 
 const stockOptions = {
@@ -28,6 +29,9 @@ const Sample_Dash = ({ user }) => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isTradeBoxOpen, setIsTradeBoxOpen] = useState(false);
   const navigate = useNavigate();
+  
+  // Retrieve common market data from context.
+  const marketData = useContext(MarketDataContext);
 
   const handleLogout = async () => {
     try {
@@ -69,7 +73,11 @@ const Sample_Dash = ({ user }) => {
             <a href="/portfolio" className="nav-link">Portfolio</a>
           </div>
           <div className="navbar-user">
-            {user && <span className="user-greeting">Welcome, {user.email.split('@')[0]}</span>}
+            {user && (
+              <span className="user-greeting">
+                Welcome, {user.email.split('@')[0]}
+              </span>
+            )}
             <button 
               className="logout-button" 
               onClick={handleLogout}
@@ -82,21 +90,26 @@ const Sample_Dash = ({ user }) => {
       </nav>
 
       <div className="content-container">
-        <div className={`main-content ${isTradeBoxOpen ? 'trade-box-open' : ''}`}>
-          <StockTrade stockSymbol={selectedStock} stockName={stockOptions[selectedStock]} />
+        {/* Main trading area using common market data */}
+        <div className={`main-content ${isTradeBoxOpen ? "trade-box-open" : ""}`}>
+          <StockTrade 
+            stockSymbol={selectedStock} 
+            stockName={stockOptions[selectedStock]} 
+            marketData={marketData} 
+          />
         </div>
 
         {/* Trade Box Toggle Button */}
         <button 
-          className={`trade-box-toggle ${isTradeBoxOpen ? 'open' : ''}`} 
+          className={`trade-box-toggle ${isTradeBoxOpen ? "open" : ""}`} 
           onClick={toggleTradeBox}
           aria-label={isTradeBoxOpen ? "Close trade panel" : "Open trade panel"}
         >
-          {isTradeBoxOpen ? '→' : '←'}
+          {isTradeBoxOpen ? "→" : "←"}
         </button>
 
         {/* Collapsible Trade Box */}
-        <div className={`trade-box-panel ${isTradeBoxOpen ? 'open' : ''}`}>
+        <div className={`trade-box-panel ${isTradeBoxOpen ? "open" : ""}`}>
           <div className="trade-box-container">
             <h2 className="trade-box-title">Trading: {selectedStock}</h2>
             <TradeBox stockSymbol={selectedStock} userEmail={user.email} />

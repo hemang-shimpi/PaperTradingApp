@@ -11,9 +11,13 @@ import VerifyEmail from "./pages/auth/VerifyEmail";
 import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import Landing from "./pages/Landing";
+import Portfolio from "./Portfolio";
 
 // CSS imports
 import "./index.css";
+
+import { MarketDataProvider } from "./components/MarketDataContext.js";
+
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -44,6 +48,7 @@ const App = () => {
   }
 
   return (
+    <MarketDataProvider>
     <Router>
       <Routes>
         {/* Public routes */}
@@ -71,7 +76,6 @@ const App = () => {
           } 
         />
 
-        {/* Protected routes */}
         <Route 
           path="/dashboard" 
           element={!isAuthenticated ? 
@@ -79,11 +83,19 @@ const App = () => {
             (isEmailVerified ? <Sample_Dash user={user} /> : <Navigate to="/verify-email" />)
           } 
         />
-        
+
+        <Route 
+          path="/portfolio" 
+          element={!isAuthenticated ? 
+            <Navigate to="/portfolio" /> : 
+            (isEmailVerified ? <Portfolio user={user} /> : <Navigate to="/verify-email" />)
+          } 
+        />
         {/* Catch all - redirect to landing page */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
+    </MarketDataProvider>
   );
 };
 

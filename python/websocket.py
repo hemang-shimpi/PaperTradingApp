@@ -137,10 +137,58 @@ class TradeRequest(BaseModel):
 @app.post("/trade")
 def execute_trade(trade: TradeRequest):
     print("Received trade payload:", trade.dict())
+    
+    # If the trade action is SELL, verify that the user has enough shares.
+    if trade.action.upper() == "SELL":
+        current_shares = 0
+        # Retrieve all trades for this user.
+        trades = database.get_trades(trade.email)
+        for t in trades:
+            if t["symbol"].upper() == trade.symbol.upper():
+                if t["action"].upper() == "BUY":
+                    current_shares += t["quantity"]
+                elif t["action"].upper() == "SELL":
+                    current_shares -= t["quantity"]
+        if current_shares < trade.quantity:
+            error_message = "Not enough shares to sell"
+            print(error_message)
+            return {
+                "status": "error",
+                "message": error_message
+            }
+    
+    # If the trade action is BUY, verify that the user has enough funds.
+    elif trade.action.upper() == "BUY":
+        # Dynamically get the current portfolio information.
+        portfolio_data = calculate_portfolio(trade.email)
+        available_cash = portfolio_data.get("cash", 0)
+        
+        # Get the current market price for the symbol.
+        executed_price = trader.get_price(trade.symbol)
+        if not executed_price:
+            error_message = "Cannot determine the price for " + trade.symbol
+            print(error_message)
+            return {
+                "status": "error",
+                "message": error_message
+            }
+        
+        total_cost = executed_price * trade.quantity
+        if available_cash < total_cost:
+            error_message = f"Not enough funds to buy. Available funds: ${available_cash:.2f}"
+            print(error_message)
+            return {
+                "status": "error",
+                "message": error_message
+            }
+    
+    # Execute the trade using your trading logic.
     trader.trade(trade.action, trade.symbol, trade.quantity)
+    # Refetch the executed price after the trade.
     executed_price = trader.get_price(trade.symbol)
     total = executed_price * trade.quantity if executed_price else 0
 
+    # Only record the trade if an email was provided.
     if trade.email:
         trade_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f"Inserting trade for {trade.email} at {trade_date}")
@@ -157,7 +205,6 @@ def execute_trade(trade: TradeRequest):
         "total": total,
         "message": "Trade executed successfully"
     }
-
 
 class SignupRequest(BaseModel):
     firstName: str
@@ -251,3 +298,110 @@ def get_historical_data(
     except Exception as e:
         print("Error in /historical endpoint:", e)
         return {"error": str(e)}
+
+# ------------------------------------------------------
+# New Portfolio/Account Logic added below:
+# ------------------------------------------------------
+
+def calculate_portfolio(email: str):
+    base_balance = 10000
+    cash = base_balance
+    positions = {}
+    orders = []
+    
+    # Try to load trades from the database.
+    try:
+        trades = database.get_trades(email)
+    except Exception as e:
+        print("Error retrieving trades:", e)
+        # If the table does not exist, assume no trades
+        trades = []
+    
+    # If there are no trades, the portfolio will be based solely on the base balance.
+    trades.sort(key=lambda x: x.get("date", ""))
+    
+    for trade in trades:
+        orders.append(trade)
+        action = trade["action"].upper()
+        symbol = trade["symbol"]
+        qty = trade["quantity"]
+        price = trade["price"]
+        total_value = trade["total"]
+        
+        if action == "BUY":
+            cash -= total_value
+            if symbol in positions:
+                pos = positions[symbol]
+                # Calculate weighted average cost
+                new_total_qty = pos["quantity"] + qty
+                new_total_cost = (pos["avgCost"] * pos["quantity"]) + (price * qty)
+                pos["quantity"] = new_total_qty
+                pos["avgCost"] = new_total_cost / new_total_qty
+            else:
+                positions[symbol] = {"quantity": qty, "avgCost": price}
+        elif action == "SELL":
+            cash += total_value
+            if symbol in positions:
+                pos = positions[symbol]
+                pos["quantity"] -= qty
+                if pos["quantity"] <= 0:
+                    del positions[symbol]
+                    
+    positions_list = []
+    total_positions_value = 0
+    for symbol, pos in positions.items():
+        # Use trader.get_price to fetch current market price.
+        current_price = trader.get_price(symbol) or pos["avgCost"]
+        market_value = pos["quantity"] * current_price
+        total_positions_value += market_value
+        positions_list.append({
+            "symbol": symbol,
+            "quantity": pos["quantity"],
+            "avgCost": pos["avgCost"],
+            "currentPrice": current_price,
+            "marketValue": market_value
+        })
+    
+    total_account_value = cash + total_positions_value
+    total_profit_loss = total_account_value - base_balance
+    
+    portfolio = {
+        "baseBalance": base_balance,
+        "cash": cash,
+        "positions": positions_list,
+        "orders": orders,
+        "totalPositionsValue": total_positions_value,
+        "totalAccountValue": total_account_value,
+        "totalProfitLoss": total_profit_loss
+    }
+    
+    return portfolio
+
+@app.get("/portfolio")
+def get_portfolio(email: str = Query(..., description="User email for portfolio retrieval")):
+    """
+    REST endpoint to retrieve the user's portfolio/account summary.
+    """
+    try:
+        portfolio = calculate_portfolio(email)
+        return {"status": "success", "portfolio": portfolio}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.websocket("/ws_portfolio")
+async def websocket_portfolio_endpoint(websocket: WebSocket, email: str = Query(..., description="User email for portfolio updates")):
+    """
+    WebSocket endpoint for real-time portfolio/account updates.
+    Clients should connect with their email as a query parameter.
+    """
+    await websocket.accept()
+    try:
+        while True:
+            portfolio = calculate_portfolio(email)
+            await websocket.send_text(json.dumps({"portfolio": portfolio}))
+            await asyncio.sleep(10)  # adjust the frequency as needed
+    except WebSocketDisconnect:
+        print(f"Portfolio WebSocket disconnected for {email}")
+    except Exception as e:
+        print("Error in portfolio WebSocket:", e)
+        await websocket.close()

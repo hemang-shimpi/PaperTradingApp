@@ -1,0 +1,192 @@
+/* Portfolio.css */
+
+/* Base Styles */
+body {
+    background-color: #000;
+    color: white;
+    margin: 0;
+    font-family: 'Circular Std', sans-serif;
+  }
+
+  .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #121212;
+    padding: 0 30px;
+    height: 70px;
+    border-bottom: 1px solid #333;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+  }
+  
+  .navbar-logo {
+    font-size: 24px;
+    font-weight: bold;
+    font-family: 'Circular Std', sans-serif;
+    color: limegreen;
+  }
+  
+  .navbar-items {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+  }
+  
+  .navbar-links {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .nav-link {
+    color: #aaa;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+  
+  .nav-link:hover {
+    color: white;
+  }
+  
+  .nav-link.active {
+    color: limegreen;
+    font-weight: 600;
+  }
+  
+  .navbar-user {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  /* Main Content */
+  .portfolio-main {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+  }
+  
+  /* Account Summary Section */
+  .portfolio-summary {
+    background-color: #121212;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 40px;
+  }
+  
+  .portfolio-summary h2 {
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    color: limegreen;
+  }
+  
+  .summary-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-evenly;
+  }
+  
+  .summary-card {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 20px 25px;
+    flex: 1 1 180px;
+    text-align: center;
+  }
+  
+  .summary-card .card-label {
+    font-size: 14px;
+    color: #aaa;
+    margin-bottom: 8px;
+    display: block;
+  }
+  
+  .summary-card .card-value {
+    font-size: 22px;
+    font-weight: bold;
+  }
+  
+  .refresh-button {
+    background-color: limegreen;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .refresh-button:hover {
+    background-color: #00cc00;
+  }
+  
+  /* Positions Section */
+  .portfolio-positions,
+  .portfolio-orders {
+    background-color: #121212;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 40px;
+  }
+  
+  .portfolio-positions h2,
+  .portfolio-orders h2 {
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    color: limegreen;
+  }
+  
+  .positions-table,
+  .orders-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .positions-table th,
+  .positions-table td,
+  .orders-table th,
+  .orders-table td {
+    padding: 12px 10px;
+    border: 1px solid #333;
+    text-align: left;
+  }
+  
+  .positions-table th,
+  .orders-table th {
+    background-color: #1e1e1e;
+    color: #ddd;
+    font-weight: bold;
+  }
+  
+  .positions-table td,
+  .orders-table td {
+    color: white;
+  }
+  
+  .no-data {
+    text-align: center;
+    padding: 20px;
+    color: #aaa;
+  }
+  
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .summary-cards {
+      flex-direction: column;
+    }
+  }
