@@ -19,7 +19,8 @@ const StockTrade = ({ stockSymbol = "AAPL", stockName = "Apple Inc.", isTradeBox
   const [isHovering, setIsHovering] = useState(false);
   const [hoverPrice, setHoverPrice] = useState(null);
   const [hoverDate, setHoverDate] = useState(null);
-  const [chartType, setChartType] = useState("line"); // New state for chart type
+  const [chartType, setChartType] = useState("line");
+  const [marketStatus, setMarketStatus] = useState("Closed"); // Default to Closed
 
   useEffect(() => {
     const fetchHistorical = async () => {
@@ -63,6 +64,21 @@ const StockTrade = ({ stockSymbol = "AAPL", stockName = "Apple Inc.", isTradeBox
       if (selectedData) {
         setStats(selectedData);
         setLivePrice(selectedData.price);
+        
+        const now = new Date();
+        const hours = now.getHours();
+        
+        if (hours < 4) {
+          setMarketStatus("Night");
+        } else if (hours < 9) {
+          setMarketStatus("Before");
+        } else if (hours < 16) {
+          setMarketStatus("Day");
+        } else if (hours < 20) {
+          setMarketStatus("After");
+        } else {
+          setMarketStatus("Closed");
+        }
       }
     };
     return () => socket.close();
@@ -99,10 +115,20 @@ const StockTrade = ({ stockSymbol = "AAPL", stockName = "Apple Inc.", isTradeBox
     ? Math.max(...priceHistory.map((item) => item.price))
     : 0;
 
-  // Chart theme color based on positive/negative
   const chartColor = isPositive ? "#00c853" : "#ff5252";
   const chartGradientStart = isPositive ? "rgba(0, 200, 83, 0.8)" : "rgba(255, 82, 82, 0.8)";
   const chartGradientEnd = isPositive ? "rgba(0, 200, 83, 0.1)" : "rgba(255, 82, 82, 0.1)";
+
+  const getStatusColor = (status) => {
+    switch(status) {
+      case "Day": return "#00c853"; // Green for active trading
+      case "Before": return "#2196f3"; // Blue for pre-market
+      case "After": return "#ff9800"; // Orange for after-hours
+      case "Night": return "#673ab7"; // Purple for night
+      case "Closed": return "#757575"; // Grey for closed
+      default: return "#757575";
+    }
+  };
 
   return (
     <div className={`stock-container ${isTradeBoxOpen ? "trade-box-open" : ""}`}>
@@ -126,7 +152,20 @@ const StockTrade = ({ stockSymbol = "AAPL", stockName = "Apple Inc.", isTradeBox
           {isHovering ? (
             <div className="hover-price">${hoverPrice?.toFixed(2)}</div>
           ) : (
-            livePrice && <div className="live-indicator">LIVE</div>
+            livePrice && (
+              <div 
+                className="market-status-indicator" 
+                style={{ 
+                  backgroundColor: getStatusColor(marketStatus),
+                  padding: "4px 8px",
+                  borderRadius: "4px",
+                  color: "#fff",
+                  fontWeight: "bold"
+                }}
+              >
+                {marketStatus}
+              </div>
+            )
           )}
         </div>
 

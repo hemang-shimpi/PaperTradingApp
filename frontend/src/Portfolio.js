@@ -242,7 +242,11 @@ const Portfolio = ({ user }) => {
                 Welcome, {user.email.split("@")[0]}
               </span>
             )}
-            <button className="logout-button" onClick={handleLogout} disabled={isLoggingOut}>
+            <button 
+              className="logout-button" 
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+            >
               {isLoggingOut ? "..." : "Logout"}
             </button>
           </div>

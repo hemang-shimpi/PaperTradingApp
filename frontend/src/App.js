@@ -87,7 +87,7 @@ const App = () => {
         <Route 
           path="/portfolio" 
           element={!isAuthenticated ? 
-            <Navigate to="/portfolio" /> : 
+            <Navigate to="/login" /> : 
             (isEmailVerified ? <Portfolio user={user} /> : <Navigate to="/verify-email" />)
           } 
         />
