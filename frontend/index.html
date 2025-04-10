@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Live Stock Chart + Stats</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background-color: #000;
+      font-family: Arial, sans-serif;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .ticker-selector, .price-container, .stats-container {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .stock-name {
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .stock-price {
+      font-size: 3em;
+      margin: 0;
+    }
+
+    .stock-change {
+      font-size: 1.2em;
+      margin-top: 5px;
+    }
+
+    .time-range {
+      margin-top: 10px;
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+
+    .time-range button {
+      background-color: transparent;
+      border: none;
+      color: #fff;
+      font-size: 1em;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .time-range button:hover,
+    .time-range button.active {
+      text-decoration: underline;
+      font-weight: bold;
+    }
+
+    #chartContainer {
+      width: 80%;
+      max-width: 800px;
+      height: 400px;
+      margin-bottom: 30px;
+    }
+
+    .stats-container {
+      width: 80%;
+      max-width: 900px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+      text-align: left;
+    }
+
+    .stat-block {
+      font-size: 0.95em;
+    }
+
+    .stat-label {
+      font-weight: bold;
+      margin-bottom: 3px;
+      color: #bbb;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ticker-selector">
+    <label for="tickerSelect">Select Ticker: </label>
+    <select id="tickerSelect">
+      <option value="AAPL">Apple (AAPL)</option>
+      <option value="META">Meta (META)</option>
+      <option value="TSLA">Tesla (TSLA)</option>
+      <option value="GOOG">Alphabet Class C (GOOG)</option>
+      <option value="NFLX">Netflix (NFLX)</option>
+      <option value="GOOGL">Alphabet Class A (GOOGL)</option>
+      <option value="WMT">Walmart (WMT)</option>
+      <option value="AMD">AMD (AMD)</option>
+      <option value="AMZN">Amazon (AMZN)</option>
+      <option value="MSFT">Microsoft (MSFT)</option>
+      <option value="NVDA">NVIDIA (NVDA)</option>
+      <option value="DIS">Disney (DIS)</option>
+      <option value="KO">Coca-Cola (KO)</option>
+      <option value="PLTR">Palantir (PLTR)</option>
+    </select>
+    
+  </div>
+
+  <div class="price-container">
+    <div class="stock-name" id="stockName">Tesla (TSLA)</div>
+    <div class="stock-price" id="stockPrice">$--.--</div>
+    <div class="stock-change" id="stockChange">-- (--%)</div>
+    <div class="time-range">
+      <button data-period="1D" class="active">1D</button>
+      <button data-period="1W">1W</button>
+      <button data-period="1M">1M</button>
+      <button data-period="3M">3M</button>
+      <button data-period="YTD">YTD</button>
+      <button data-period="1Y">1Y</button>
+      <button data-period="5Y">5Y</button>
+      <button data-period="MAX">MAX</button>
+    </div>
+  </div>
+
+  <div id="chartContainer">
+    <canvas id="priceChart"></canvas>
+  </div>
+
+  <div class="stats-container">
+    <h2>Key Statistics</h2>
+    <div class="stats-grid" id="statsGrid">
+      <!-- Populated dynamically -->
+    </div>
+  </div>
+
+  <script>
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    let selectedTicker = document.getElementById('tickerSelect').value;
+    let historicalMode = false;
+    let previousPrice = null;
+
+    const statsGrid = document.getElementById("statsGrid");
+
+    const liveData = {
+      labels: [],
+      datasets: [{
+        label: selectedTicker,
+        data: [],
+        borderColor: '#ff6600',
+        backgroundColor: 'rgba(0,0,0,0)',
+        borderWidth: 1.5,
+        tension: 0.2,
+        pointRadius: 0,
+      }]
+    };
+
+    const config = {
+      type: 'line',
+      data: liveData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            enabled: true,
+            callbacks: {
+              title: (context) => {
+                const date = new Date(context[0].label);
+                return date.toLocaleString('en-US', {
+                  month: 'short', day: 'numeric', year: 'numeric',
+                  hour: 'numeric', minute: 'numeric'
+                });
+              },
+              label: (context) => `$${context.parsed.y.toFixed(2)}`
+            }
+          }
+        },
+        scales: {
+          x: { display: false },
+          y: {
+            ticks: { color: '#fff' },
+            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+          }
+        }
+      }
+    };
+
+    const myChart = new Chart(ctx, config);
+    const stockPriceEl = document.getElementById('stockPrice');
+    const stockChangeEl = document.getElementById('stockChange');
+    const stockNameEl = document.getElementById('stockName');
+
+    const socket = new WebSocket("ws://127.0.0.1:8000/ws");
+
+    socket.onmessage = (event) => {
+      if (historicalMode) return;
+      const priceData = JSON.parse(event.data);
+      const data = priceData[selectedTicker];
+      if (!data || !data.price) return;
+
+      const rawPrice = parseFloat(data.price);
+      const now = new Date().toISOString();
+      liveData.labels.push(now);
+      liveData.datasets[0].data.push(rawPrice);
+
+      if (liveData.labels.length > 50) {
+        liveData.labels.shift();
+        liveData.datasets[0].data.shift();
+      }
+
+      myChart.update();
+      stockPriceEl.textContent = `$${rawPrice.toFixed(2)}`;
+
+      if (previousPrice !== null) {
+        const diff = rawPrice - previousPrice;
+        const diffPct = (diff / previousPrice) * 100;
+        const sign = diff >= 0 ? '+' : '';
+        stockChangeEl.textContent = `${sign}${diff.toFixed(2)} (${sign}${diffPct.toFixed(2)}%)`;
+        stockChangeEl.style.color = diff >= 0 ? '#00ff00' : '#ff0000';
+      }
+      previousPrice = rawPrice;
+
+      // 🔥 Update Key Statistics
+      statsGrid.innerHTML = `
+        <div class="stat-block"><div class="stat-label">Market Cap</div>${formatNumber(data.marketCap)}</div>
+        <div class="stat-block"><div class="stat-label">P/E Ratio</div>${data.peRatio ?? "—"}</div>
+        <div class="stat-block"><div class="stat-label">Average Volume</div>${formatNumber(data.averageVolume)}</div>
+        <div class="stat-block"><div class="stat-label">Volume</div>${formatNumber(data.volume)}</div>
+        <div class="stat-block"><div class="stat-label">High Today</div>$${data.high}</div>
+        <div class="stat-block"><div class="stat-label">Low Today</div>$${data.low}</div>
+        <div class="stat-block"><div class="stat-label">Open Price</div>$${data.open}</div>
+        <div class="stat-block"><div class="stat-label">52 Week High</div>$${data["52WeekHigh"]}</div>
+        <div class="stat-block"><div class="stat-label">52 Week Low</div>$${data["52WeekLow"]}</div>
+      `;
+    };
+
+    document.getElementById('tickerSelect').addEventListener('change', function () {
+      selectedTicker = this.value;
+      stockNameEl.textContent = this.options[this.selectedIndex].text;
+      liveData.labels = [];
+      liveData.datasets[0].data = [];
+      previousPrice = null;
+      historicalMode = false;
+      myChart.update();
+    });
+
+    function formatNumber(value) {
+      if (!value || isNaN(value)) return "—";
+      if (value >= 1e9) return (value / 1e9).toFixed(2) + "B";
+      if (value >= 1e6) return (value / 1e6).toFixed(2) + "M";
+      return value.toLocaleString();
+    }
+
+    function fetchHistoricalData(period) {
+      historicalMode = true;
+      const url = `http://127.0.0.1:8000/historical?ticker=${selectedTicker}&period=${period}`;
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if (!Array.isArray(data) || data.length === 0) return;
+          data.sort((a, b) => new Date(a.date) - new Date(b.date));
+          liveData.labels = data.map(item => item.date);
+          liveData.datasets[0].data = data.map(item => parseFloat(item.close));
+          myChart.update();
+        });
+    }
+
+    const buttons = document.querySelectorAll('.time-range button');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        fetchHistoricalData(btn.getAttribute('data-period'));
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,3 +1,4 @@
 .env
 secrets.env
-index.html
+node_modules
+frontend/src/firebaseConfig.js
