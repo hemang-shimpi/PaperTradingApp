@@ -83,7 +83,7 @@ const StockTrade = ({ stockSymbol = "AAPL", stockName = "Apple Inc.", isTradeBox
           } else if (timeInMinutes < 9 * 60 + 30) {
             setMarketStatus("Pre-market"); // 4:00 AM to 9:30 AM ET
           } else if (timeInMinutes < 16 * 60) {
-            setMarketStatus("Market Open"); // 9:30 AM to 4:00 PM ET
+            setMarketStatus("Day"); // 9:30 AM to 4:00 PM ET
           } else if (timeInMinutes < 20 * 60) {
             setMarketStatus("After-hours"); // 4:00 PM to 8:00 PM ET
           } else {
