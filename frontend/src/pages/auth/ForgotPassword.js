@@ -76,7 +76,7 @@ const ForgotPassword = () => {
         
         <div className="auth-header">
           <h1>Reset Your Password</h1>
-          <br/><br/>
+          <br/><br/><br/><br/>
           <p className="auth-subheader">
             Enter your email address and we'll send you a link to reset your password.
           </p>

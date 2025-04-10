@@ -18,13 +18,12 @@ const VerifyEmail = ({ user }) => {
 
     const checkEmailVerified = async () => {
       try {
-        // Reload user to get latest verification status
         await reload(user);
         if (user.emailVerified) {
           navigate("/dashboard");
         }
-      } catch (error) {
-        console.error("Error checking email verification:", error);
+      } catch (err) {
+        console.error("Error checking email verification:", err);
       }
     };
 
@@ -54,8 +53,8 @@ const VerifyEmail = ({ user }) => {
       setMessage("Verification email resent! Please check your inbox.");
       setCanResend(false);
       setTimer(60);
-    } catch (error) {
-      console.error("Error sending verification email:", error);
+    } catch (err) {
+      console.error("Error sending verification email:", err);
       setError("Failed to resend verification email. Please try again later.");
     } finally {
       setLoading(false);
@@ -66,8 +65,8 @@ const VerifyEmail = ({ user }) => {
     try {
       await signOut(auth);
       navigate("/login");
-    } catch (error) {
-      console.error("Error signing out:", error);
+    } catch (err) {
+      console.error("Error signing out:", err);
     }
   };
 
@@ -86,19 +85,14 @@ const VerifyEmail = ({ user }) => {
         
         <div className="auth-header">
           <h1>Verify Your Email</h1>
+          <br/><br/><br/>
+          <p className="auth-subheader">
+            A verification email has been sent to <strong>{user.email}</strong>.
+            Please check your inbox (or spam folder) and click on the verification link to continue.
+          </p>
         </div>
         
         <div className="verify-email-content">
-          <p>
-            We've sent a verification email to <strong>{user.email}</strong>.
-            Please check your inbox and click the verification link to continue.
-          </p>
-          
-          <p>
-            If you don't see the email, check your spam folder or request another
-            verification email.
-          </p>
-          
           {message && <div className="auth-success">{message}</div>}
           {error && <div className="auth-error">{error}</div>}
           
@@ -109,12 +103,9 @@ const VerifyEmail = ({ user }) => {
           >
             {loading ? "Sending..." : canResend ? "Resend Verification Email" : `Resend in ${timer}s`}
           </button>
-          
-          <button
-            onClick={handleLogout}
-            className="auth-button secondary"
-          >
-            Logout
+          <br/>
+          <button onClick={handleLogout} className="auth-button secondary">
+            Login
           </button>
         </div>
       </div>
