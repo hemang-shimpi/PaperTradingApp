@@ -10,6 +10,7 @@
     "@testing-library/user-event": "^13.5.0",
     "chart.js": "^4.4.8",
     "clsx": "^2.1.1",
+    "firebase": "^11.6.0",
     "framer-motion": "^12.6.3",
     "lucide-react": "^0.487.0",
     "react": "^19.1.0",

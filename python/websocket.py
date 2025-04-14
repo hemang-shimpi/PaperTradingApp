@@ -114,10 +114,11 @@ async def websocket_endpoint(websocket: WebSocket):
                         "exchange": info.get("exchange", ""),
                         "shortName": info.get("shortName", symbol)
                     }
-                    #print(f"Fetched {symbol}: {prices[symbol][price]}")
                 except Exception as e:
                     print(f"Failed to fetch {symbol}: {e}")
                     prices[symbol] = {"error": str(e)}
+                await asyncio.sleep(0.5)
+            await asyncio.sleep(0)
             trader.update_prices(prices)
             await websocket.send_text(json.dumps(prices))
             await asyncio.sleep(5)
