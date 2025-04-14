@@ -234,17 +234,10 @@ body {
   margin-right: 0;
 }
 
-.tab.buy-active {
-  background-color: #39FF14; /* Neon green */
+.tab.active {
+  background-color: #39FF14;
   color: #000;
 }
-
-.tab.sell-active {
-  background-color: #FF4C4C; /* Bright red */
-  color: #fff;
-}
-
-
 
 .trade-inputs {
   display: flex;
