@@ -1,72 +1,82 @@
 import React, { useState } from "react";
-import "../index.css";
 
-function TradeBox({ stockSymbol}) {
-  const [buyOrSell, setBuyOrSell] = useState("buy"); // "buy" or "sell"
-  const [units, setUnits] = useState("dollars");       // "dollars" or "shares"
-  const [amount, setAmount] = useState("");
+const TradeBox = ({ stockSymbol, userEmail }) => {
+  const [tradeType, setTradeType] = useState("BUY");
+  const [quantity, setQuantity] = useState("");
+  const [summary, setSummary] = useState(null);
 
-  const handleToggle = (type) => {
-    setBuyOrSell(type);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validate quantity - must be a positive integer
+    const qty = parseInt(quantity);
+    if (isNaN(qty) || qty <= 0) {
+      alert("Please enter a valid quantity (a positive number).");
+      return;
+    }
+    
+    const tradePayload = {
+      action: tradeType,
+      symbol: stockSymbol,
+      quantity: qty,
+      email: userEmail
+    };
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/trade", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(tradePayload)
+      });
+
+      const result = await res.json();
+      if (result.status === "success") {
+        setSummary(result);
+      } else {
+        alert(result.message);
+      }
+    } catch (err) {
+      console.error("Trade failed:", err);
+      alert("Trade failed!");
+    }
   };
 
   return (
-    <div className="trade-box-container">
-      {/* Buy/Sell Tabs */}
-      <div className="buy-sell-tabs">
-        <button
-          className={`tab ${buyOrSell === "buy" ? "active" : ""}`}
-          onClick={() => handleToggle("buy")}
-        >
-          Buy {stockSymbol}
-        </button>
-        <button
-          className={`tab ${buyOrSell === "sell" ? "active" : ""}`}
-          onClick={() => handleToggle("sell")}
-        >
-          Sell {stockSymbol}
-        </button>
+    <div className="trade-box">
+      {/* Trade Type Tabs */}
+      <div className="trade-tabs">
+        <button className={`tab ${tradeType === "BUY" ? "active" : ""}`} onClick={() => setTradeType("BUY")}>BUY</button>
+        <button className={`tab ${tradeType === "SELL" ? "active" : ""}`} onClick={() => setTradeType("SELL")}>SELL</button>
       </div>
 
-      <span></span>
+      {/* Trade Order Form */}
+      <form onSubmit={handleSubmit}>
+        <div className="quantity-container">
+          <label>Quantity:</label>
+          <input
+            type="number"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            required
+          />
+        </div>
+        <p>Market Order</p>
+        <button type="submit">SUBMIT ORDER</button>
+      </form>
 
-      <div className="trade-inputs">
-        <label>{buyOrSell === "buy" ? "Buy In" : "Sell In"}</label>
-        <select value={units} onChange={(e) => setUnits(e.target.value)}>
-          <option value="dollars">Dollars</option>
-          <option value="shares">Shares</option>
-        </select>
-
-        <span></span>
-        
-
-        <label>{units === "shares" ? "Shares" : "Amount"}</label>
-        <input
-          type="number"
-          placeholder="0.00"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-        />
-
-        {units === "shares" ? (
-          <div className="estimated-row">
-            <span>Market Price</span>
-            <span>$0.3792</span>
-          </div>
-        ) : (
-          <div className="estimated-row">
-            <span>Estimated quantity</span>
-            <span>0</span>
-          </div>
-        )}
-      </div>
-
-      <button className="review-order-btn">Review Order</button>
-
-      <div className="buying-power">$0.01 buying power available</div>
-      <div className="account-type">Individual</div>
+      {/* Transaction Summary */}
+      {summary && (
+        <div className="summary">
+          <p><strong>{summary.action} Order:</strong> {summary.quantity} Shares of {summary.symbol}</p>
+          <p><strong>Executed Price:</strong> ${summary.price.toFixed(2)}</p>
+          <p><strong>Total:</strong> ${summary.total.toFixed(2)}</p>
+          <p>{summary.message}</p>
+        </div>
+      )}
     </div>
   );
-}
+};
 
 export default TradeBox;

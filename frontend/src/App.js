@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 // Import your existing components
-import Sample_Dash from "./components/StockTrade";
+import Sample_Dash from "./Sample_Dash";
 
 // Import new auth components
 import Login from "./pages/auth/Login";

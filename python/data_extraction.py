@@ -6,7 +6,7 @@ from azure.keyvault.secrets import SecretClient
 from azure.core.exceptions import ClientAuthenticationError
 import os
 
-load_dotenv(dotenv_path="./secrets.env") 
+load_dotenv(dotenv_path="../secrets.env") 
 
 client_id = os.getenv('AZURE_CLIENT_ID')
 tenant_id = os.getenv('AZURE_TENANT_ID')
@@ -25,7 +25,7 @@ except Exception as e:
     print("Unexpected error:", e)
 
 # Configure Spark with the necessary Azure dependencies
-jars_path = "./"
+jars_path = "/opt/anaconda3/envs/trading/jars"
 azure_jars = f"{jars_path}/hadoop-azure-3.3.1.jar,{jars_path}/hadoop-azure-datalake-3.3.1.jar"
 
 builder = SparkSession.builder.appName("MyApp") \
