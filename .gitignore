@@ -1,4 +1,4 @@
 .env
 secrets.env
 node_modules
-frontend/src/firebaseConfig.js
+firebaseConfig.js
