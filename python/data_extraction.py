@@ -6,7 +6,7 @@ from azure.keyvault.secrets import SecretClient
 from azure.core.exceptions import ClientAuthenticationError
 import os
 
-load_dotenv(dotenv_path="../secrets.env") 
+load_dotenv(dotenv_path="secrets.env") 
 
 client_id = os.getenv('AZURE_CLIENT_ID')
 tenant_id = os.getenv('AZURE_TENANT_ID')

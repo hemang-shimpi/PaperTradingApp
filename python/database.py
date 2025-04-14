@@ -70,3 +70,33 @@ def verify_user(email, password):
     user = cursor.fetchone()
     conn.close()
     return user is not None
+
+def get_trades(email: str):
+    """
+    Retrieve all trades for a specified email.
+    Returns a list of trade dictionaries sorted by date.
+    This function checks for the presence of the 'message' column and falls back if it's missing.
+    """
+    conn = get_db_connection()
+    c = conn.cursor()
+    # Using the column name "user_email" since that's how it is stored.
+    c.execute('SELECT * FROM trades WHERE user_email = ? ORDER BY date ASC', (email,))
+    rows = c.fetchall()
+    trades = []
+    for row in rows:
+        # Use row["message"] if available, else set it to empty string.
+        message = row["message"] if "message" in row.keys() else ""
+        trade = {
+            "id": row["id"],
+            "user_email": row["user_email"],
+            "action": row["action"],
+            "symbol": row["symbol"],
+            "quantity": row["quantity"],
+            "price": row["price"],
+            "total": row["total"],
+            "date": row["date"],
+            "message": message
+        }
+        trades.append(trade)
+    conn.close()
+    return trades

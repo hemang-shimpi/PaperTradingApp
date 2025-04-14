@@ -1,19 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { 
+  createUserWithEmailAndPassword, 
+  updateProfile, 
+  sendEmailVerification 
+} from "firebase/auth";
+import { auth } from "../../firebaseConfig";
 import "./auth.css";
 
 const Signup = () => {
-  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    name: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    confirmPassword: ""
   });
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState("");
+  const [passwordStrength, setPasswordStrength] = useState({
+    score: 0,
+    message: "Password strength: Too weak",
+    color: "#ff4d4f"
+  });
   const navigate = useNavigate();
   
   // For animated background effect
@@ -34,36 +43,49 @@ const Signup = () => {
     };
   }, []);
 
-  // Check password strength whenever password changes
+  // Password strength checker
   useEffect(() => {
-    checkPasswordStrength(formData.password);
-  }, [formData.password]);
-
-  const checkPasswordStrength = (password) => {
-    if (!password) {
-      setPasswordStrength("");
+    if (!formData.password) {
+      setPasswordStrength({
+        score: 0,
+        message: "Password strength: Too weak",
+        color: "#ff4d4f"
+      });
       return;
     }
-  
-    // Simple password strength check
-    const hasLetter = /[a-zA-Z]/.test(password);
-    const hasNumber = /\d/.test(password);
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    const isLongEnough = password.length >= 8;
-  
-    if (isLongEnough && hasLetter && hasNumber && hasSpecial) {
-      setPasswordStrength("strong");
-    } else if (
-      isLongEnough &&
-      ((hasLetter && hasNumber) || (hasLetter && hasSpecial) || (hasNumber && hasSpecial))
-    ) {
-      setPasswordStrength("medium");
-    } else if (password.length > 0) {
-      setPasswordStrength("weak");
+
+    // Check password strength
+    const length = formData.password.length;
+    const hasUpperCase = /[A-Z]/.test(formData.password);
+    const hasLowerCase = /[a-z]/.test(formData.password);
+    const hasNumbers = /\d/.test(formData.password);
+    const hasSpecialChars = /[!@#$%^&*(),.?":{}|<>]/.test(formData.password);
+    
+    let score = 0;
+    if (length >= 8) score += 1;
+    if (length >= 12) score += 1;
+    if (hasUpperCase) score += 1;
+    if (hasLowerCase) score += 1;
+    if (hasNumbers) score += 1;
+    if (hasSpecialChars) score += 1;
+    
+    let message, color;
+    if (score < 2) {
+      message = "Password strength: Too weak";
+      color = "#ff4d4f";
+    } else if (score < 4) {
+      message = "Password strength: Fair";
+      color = "#faad14";
+    } else if (score < 6) {
+      message = "Password strength: Good";
+      color = "#52c41a";
     } else {
-      setPasswordStrength("");
+      message = "Password strength: Strong";
+      color = "#1890ff";
     }
-  };
+    
+    setPasswordStrength({ score, message, color });
+  }, [formData.password]);
 
   const handleChange = (e) => {
     setFormData({
@@ -72,63 +94,117 @@ const Signup = () => {
     });
   };
 
-  const validatePasswordMatch = () => {
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return false;
-    }
-    return true;
-  };
-
-  const handleNext = (e) => {
-    e.preventDefault();
-    if (step === 1) {
-      setStep(2);
-    } else if (step === 2 && validatePasswordMatch()) {
-      handleSubmit(e);
-    }
-  };
-
-  const handleBack = () => {
-    setStep(1);
-    setError("");
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setIsLoading(true);
-    
+
+    // Validation
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError("Password should be at least 6 characters");
+      setIsLoading(false);
+      return;
+    }
+
+    if (passwordStrength.score < 2) {
+      setError("Please use a stronger password");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Send signup data to the backend /signup endpoint
-      const response = await fetch("http://127.0.0.1:8000/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          password: formData.password
-        }),
-      });
-      const data = await response.json();
+      // Create user with Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth, 
+        formData.email, 
+        formData.password
+      );
       
-      if (data.status === "success") {
-        console.log("Signup successful", data);
-        navigate("/dashboard");
-      } else {
-        setError(data.message || "Signup failed. Please try again.");
+      // Update user profile with name
+      await updateProfile(userCredential.user, {
+        displayName: formData.name
+      });
+
+      // Send email verification
+      await sendEmailVerification(userCredential.user);
+      
+      console.log("Signup successful", userCredential.user);
+      
+      // Optional: You can still make a backend call to store additional user data
+      try {
+        await fetch("http://127.0.0.1:8000/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            uid: userCredential.user.uid,
+            name: formData.name,
+            email: formData.email,
+          }),
+        });
+      } catch (backendErr) {
+        console.error("Backend registration failed, but Firebase auth succeeded", backendErr);
       }
+      
+      // Set success message
+      setSuccess("Account created successfully! Please check your email to verify your account.");
+      
+      // Clear form data
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        confirmPassword: ""
+      });
+      
+      // Optional: Navigate after a delay to allow the user to see the success message
+      // setTimeout(() => navigate("/verify-email"), 5000);
     } catch (err) {
       console.error(err);
-      setError("There was an error creating your account. Please try again.");
+      if (err.code === 'auth/email-already-in-use') {
+        setError("This email is already registered");
+      } else if (err.code === 'auth/invalid-email') {
+        setError("Invalid email address");
+      } else if (err.code === 'auth/weak-password') {
+        setError("Password is too weak");
+      } else {
+        setError("Failed to create account. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Password strength indicator component
+  const PasswordStrengthIndicator = () => {
+    const filledBars = Math.min(Math.floor(passwordStrength.score), 5);
+    
+    return (
+      <div className="password-strength-container">
+        <div className="strength-bars">
+          {[...Array(5)].map((_, index) => (
+            <div 
+              key={index}
+              className={`strength-bar ${index < filledBars ? 'filled' : ''}`}
+              style={{ backgroundColor: index < filledBars ? passwordStrength.color : '#e1e1e1' }}
+            ></div>
+          ))}
+        </div>
+        <div className="strength-text" style={{ color: passwordStrength.color }}>
+          {passwordStrength.message}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div 
+    <div
       className="auth-container"
       style={{
         backgroundPosition: `${mousePosition.x * 100}% ${mousePosition.y * 100}%`,
@@ -142,130 +218,113 @@ const Signup = () => {
         </div>
         
         <div className="auth-header">
-          <h1>{step === 1 ? "Create Your Account" : "Set Up Password"}</h1>
+          <h1>Create an Account</h1>
         </div>
-
+        
         {error && <div className="auth-error">{error}</div>}
+        {success && <div className="auth-success">{success}</div>}
+        
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label htmlFor="name">Full Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Enter your full name"
+              required
+            />
+          </div>
 
-        <form className="auth-form">
-          {step === 1 ? (
-            <>
-              <div className="form-group">
-                <label htmlFor="firstName">First Name</label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  placeholder="Enter your first name"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="lastName">Last Name</label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  placeholder="Enter your last name"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="email">Email</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Enter your email address"
-                  required
-                />
-              </div>
-
-              <button 
-                type="button" 
-                className="auth-button" 
-                onClick={handleNext}
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter your email"
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Create a password"
+              required
+            />
+            {formData.password && <PasswordStrengthIndicator />}
+            <div className="password-requirements">
+              <p>Password should:</p>
+              <ul>
+                <li className={formData.password.length >= 8 ? 'met' : ''}>
+                  Be at least 8 characters long
+                </li>
+                <li className={/[A-Z]/.test(formData.password) ? 'met' : ''}>
+                  Contain at least one uppercase letter
+                </li>
+                <li className={/[a-z]/.test(formData.password) ? 'met' : ''}>
+                  Contain at least one lowercase letter
+                </li>
+                <li className={/\d/.test(formData.password) ? 'met' : ''}>
+                  Contain at least one number
+                </li>
+                <li className={/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? 'met' : ''}>
+                  Contain at least one special character
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Confirm your password"
+              required
+            />
+            {formData.password && formData.confirmPassword && (
+              <div 
+                className={`password-match ${
+                  formData.password === formData.confirmPassword ? 'match' : 'mismatch'
+                }`}
               >
-                Continue
-              </button>
-            </>
-          ) : (
-            <>
-              <div className="form-group">
-                <label htmlFor="password">Password</label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Create a secure password"
-                  minLength="8"
-                  required
-                />
-                {formData.password && (
-                  <div className="password-strength">
-                    <div className={`password-strength-bar ${passwordStrength}`}></div>
-                  </div>
-                )}
+                {formData.password === formData.confirmPassword
+                  ? "✓ Passwords match"
+                  : "✗ Passwords do not match"}
               </div>
-
-              <div className="form-group">
-                <label htmlFor="confirmPassword">Confirm Password</label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="Confirm your password"
-                  minLength="8"
-                  required
-                />
-              </div>
-
-              <div className="form-action-buttons">
-                <button 
-                  type="button" 
-                  className="back-button" 
-                  onClick={handleBack}
-                >
-                  Back
-                </button>
-                <button 
-                  type="button" 
-                  className="auth-button" 
-                  onClick={handleNext}
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Creating Account..." : "Create Account"}
-                </button>
-              </div>
-            </>
-          )}
+            )}
+          </div>
+          
+          <button
+            type="submit"
+            className="auth-button"
+            disabled={isLoading}
+          >
+            {isLoading ? "Creating Account..." : "Sign Up"}
+          </button>
         </form>
-
+        
         <div className="auth-divider">
           <span>or</span>
         </div>
-
+        
         <div className="auth-options">
           <p>
             Already have an account? <Link to="/login" className="auth-link">Log In</Link>
-          </p>
-        </div>
-
-        <div className="auth-terms">
-          <p>
-            This project is an academic project for Cloud Computing class and is not affiliated with any real financial institution.
           </p>
         </div>
       </div>
