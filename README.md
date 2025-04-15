@@ -1,49 +1,185 @@
-# Real-Time Paper Trading on Azure
+# Paper Trading App Documentation
 
 ## Overview
-Building a real-time paper trading web application. This project enables users to stream live market data and retain historical records using Azure, providing a low-cost, easy-to-use platform for realistic trading strategy simulations.
+A comprehensive full-stack paper trading platform allowing users to simulate stock trading with real-time market data. Built with a React frontend and Python backend, this platform offers an authentic trading experience without financial risk.
 
-## Problem Statement
-Many aspiring traders rely on paper trading platforms to practice investing without financial risk. However, existing platforms have several limitations:
-- **Limited Customization**: Lack of flexibility for users to tailor their trading experience, making it difficult to simulate real-world strategies effectively.
-- **Clustered Interface**: Overwhelming dashboards that make navigation difficult, especially for beginners.
-- **Delayed Market Data**: Some platforms fail to provide real-time updates, leading to inaccurate simulations that do not reflect actual trading conditions.
+## Architecture
 
-These issues result in an ineffective and unrealistic trading experience, reducing the educational value of paper trading.
+### Frontend
+- Framework: React Single Page Application (SPA) built with Create React App
+- Market Data: Real-time updates via WebSocket connection 
+- Visualization: Interactive charts powered by Recharts library
+- Authentication: Secure user management through Firebase
+- Styling: Responsive design with modern CSS techniques
 
-## Our Solution
-Compared to existing paper trading platforms, our solution offers:
-- A more **appealing and easy-to-use** interface.
-- **Real-time data updates** for more accurate simulations.
+### Backend
+- Server: Python WebSocket server handling real-time communications
+- Database: SQLite for data persistence with efficient query optimization
+- Data Processing: Real-time market data ingestion and processing pipeline
+- Business Logic: Robust implementation of trading mechanics and order execution
 
-## Project Goals & Expected Outcomes
-- **Live Simulation**: Paper trading that mirrors real-time market conditions for the top 10 companies.
-- **Real-Time Updates**: Market data updates every 5 seconds.
-- **Historical Data**: Efficient storage and management of 5 years of market data.
-- **Cost Efficiency**: Utilization of Azure student credits with a serverless architecture.
+## Prerequisites
+- Node.js ≥ 16.0.0
+- Python ≥ 3.10.0
+- pip (Python package manager)
+- Git
 
-## Approach & Resources
-1. **Frontend**: React/JavaScript for an intuitive UI.
-2. **Storage**: Azure Data Lake Gen2 / SQL Database for historical data retention.
-3. **Processing**: Serverless Spark / Spark on Databricks for efficient data processing.
-4. **Streaming Layer**: Azure Event Hubs (Kafka) for real-time data ingestion.
-5. **Data Ingestion**: Coinbase WebSocket for live market data.
+## Installation & Setup
 
-### System Architecture
-- Data ingestion from **Coinbase WebSocket**.
-- Real-time data processing using **Azure Event Hubs & Serverless Spark**.
-- Historical data stored in **Azure Data Lake Gen2**.
-- User-friendly interface built with **React/JavaScript**.
+### 1. Clone the Repository
+```bash
+git clone <repository-url>
+cd PaperTradingApp
+```
 
-## Project Timeline & Milestones
+### 2. Frontend Setup
+```bash
+cd frontend
+npm install
+```
 
-| Phase | Duration | Tasks |
-|--------|------------|----------------------------------------|
-| **Phase 1** | Weeks 1-2 | Gather requirements, design architecture, and proof-of-concept for data ingestion. |
-| **Phase 2** | Weeks 3-4 | Set up Azure Event Hubs and serverless Spark streaming jobs. Test data flow. |
-| **Phase 3** | Weeks 5-6 | Integrate Azure Data Lake. Build API/UI components. |
-| **Phase 4** | Week 7 | Final testing, optimization, deployment, and documentation. |
+Create a `firebaseConfig.js` file in the frontend/src/ directory:
+```javascript
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 
-## Conclusion
-This project aims to deliver a high-performance, real-time paper trading platform leveraging Azure's cloud capabilities. By addressing key limitations in existing platforms, we provide a more engaging and accurate trading experience.
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_DOMAIN.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_BUCKET.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID",
+  measurementId: "YOUR_MEASUREMENT_ID"
+};
 
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+export { auth };
+```
+
+### 3. Backend Setup
+```bash
+cd python
+pip install -r requirements.txt
+```
+
+Create a `secrets.env` file in the python directory:
+```
+AZURE_CLIENT_ID="YOUR_CLIENT_ID"
+AZURE_TENANT_ID="YOUR_TENANT_ID"
+AZURE_CLIENT_SECRET="YOUR_CLIENT_SECRET"
+```
+
+*Note: If using Anaconda, place the following JAR files in `/opt/anaconda3/envs/trading/jars`:*
+- hadoop-azure-datalake-3.3.1.jar
+- hadoop-azure-3.3.1.jar
+
+## Running the Application
+
+### 1. Start the Backend Server
+```bash
+cd python
+python -m uvicorn websocket:app --reload
+```
+The WebSocket server will be available at `ws://localhost:8000`.
+
+### 2. Start the Frontend Development Server
+```bash
+cd frontend
+npm start
+```
+Access the application at `http://localhost:3000`.
+
+## Key Features
+
+### Authentication
+- Secure email/password registration and login
+- Email verification workflow
+- Self-service password reset functionality
+- Session management
+
+### Trading Features
+- Real-time stock price updates with minimal latency
+- Market buy/sell order execution
+- Comprehensive portfolio tracking and management
+- Performance metrics including P&L, ROI, and drawdown
+- Detailed order history with execution analytics
+
+### Charts & Analytics
+- Interactive price charts with customizable indicators
+- Multiple timeframe options (1D, 1W, 1M, 3M, 6M, 1Y)
+- Portfolio performance visualization with benchmark comparison
+- Trading volume analysis with liquidity indicators
+- Position sizing recommendations
+
+## Project Structure
+```
+frontend/
+  ├── public/           # Static assets and HTML template
+  ├── src/
+  │   ├── components/   # Reusable components
+  │   ├── pages/        # Page-level components
+  │   ├── App.js        # Application root component
+  │   ├── Sample_Dash.js   # Application dashboard component
+  │   ├── Portfolio.js   # Application portfolio component
+  │   ├── index.css  
+  │   ├── portfolio.css   
+  │   ├── index.js      # Entry point
+  │   ├── index.html    
+  ├── package.json      # Dependencies and scripts
+  └── README.md         # Frontend documentation
+
+python/
+  ├── data_extraction.py   # Market data ingestion logic
+  ├── database.py          # Database models and operations
+  ├── profit_loss.py       # P&L calculation algorithms
+  ├── websocket.py         # WebSocket server implementation
+  └── requirements.txt     # Python dependencies
+```
+
+## Known Limitations
+- Limited to specific stock symbols (currently supports top 10 US stocks)
+- Uses simulated market data in development environment
+- Supports basic order types only (market orders)
+- No options or derivatives trading
+- Historical data limited to 5 years
+
+## Future Improvements
+1. Add advanced order types (limit orders, stop losses, trailing stops)
+2. Implement comprehensive technical indicators library
+3. Create paper trading competitions with leaderboards
+4. Expand available trading instruments (options, futures, forex)
+5. Enhance portfolio analytics with risk metrics
+6. Integrate social features for community learning
+7. Add mobile applications for iOS and Android
+
+## Troubleshooting
+
+### Common Issues
+
+#### WebSocket Connection Failed
+- Verify the backend server is running and accessible
+- Check WebSocket URL configuration in frontend code
+- Confirm no firewall or network restrictions are blocking WebSocket traffic
+- Examine backend logs for connection rejection errors
+
+#### Authentication Errors
+- Verify Firebase configuration matches your project settings
+- Check email verification status in Firebase console
+- Clear browser cache and cookies
+- Ensure proper CORS configuration in backend
+
+#### Performance Issues
+- Monitor WebSocket message frequency and payload size
+- Check for memory leaks in React components
+- Review backend resource utilization during peak loads
+- Optimize database queries causing slowdowns
+
+### Development Tips
+- Use Chrome DevTools Network tab to monitor WebSocket traffic
+- Enable React Developer Tools for component debugging
+- Implement logging for critical backend operations
+- Test with different network conditions using Chrome DevTools
+- Use mock data during frontend development for consistent testing
