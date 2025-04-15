@@ -1,49 +1,173 @@
-# Real-Time Paper Trading on Azure
+# Paper Trading Platform Review
 
 ## Overview
-Building a real-time paper trading web application. This project enables users to stream live market data and retain historical records using Azure, providing a low-cost, easy-to-use platform for realistic trading strategy simulations.
+This is a full-stack paper trading platform built with React frontend and Python backend, allowing users to simulate trading stocks with real-time market data.
 
-## Problem Statement
-Many aspiring traders rely on paper trading platforms to practice investing without financial risk. However, existing platforms have several limitations:
-- **Limited Customization**: Lack of flexibility for users to tailor their trading experience, making it difficult to simulate real-world strategies effectively.
-- **Clustered Interface**: Overwhelming dashboards that make navigation difficult, especially for beginners.
-- **Delayed Market Data**: Some platforms fail to provide real-time updates, leading to inaccurate simulations that do not reflect actual trading conditions.
+## Architecture
 
-These issues result in an ineffective and unrealistic trading experience, reducing the educational value of paper trading.
+### Frontend
+- React-based SPA using Create React App
+- Real-time market data using WebSocket
+- Recharts for interactive charts
+- Firebase authentication
+- Responsive design with CSS
 
-## Our Solution
-Compared to existing paper trading platforms, our solution offers:
-- A more **appealing and easy-to-use** interface.
-- **Real-time data updates** for more accurate simulations.
+### Backend 
+- Python websocket server
+- SQLite database
+- Real-time data ingestion
+- Trading logic implementation
 
-## Project Goals & Expected Outcomes
-- **Live Simulation**: Paper trading that mirrors real-time market conditions for the top 10 companies.
-- **Real-Time Updates**: Market data updates every 5 seconds.
-- **Historical Data**: Efficient storage and management of 5 years of market data.
-- **Cost Efficiency**: Utilization of Azure student credits with a serverless architecture.
+## Prerequisites
 
-## Approach & Resources
-1. **Frontend**: React/JavaScript for an intuitive UI.
-2. **Storage**: Azure Data Lake Gen2 / SQL Database for historical data retention.
-3. **Processing**: Serverless Spark / Spark on Databricks for efficient data processing.
-4. **Streaming Layer**: Azure Event Hubs (Kafka) for real-time data ingestion.
-5. **Data Ingestion**: Coinbase WebSocket for live market data.
+- Node.js >= 16
+- Python >= 3.10
+- pip (Python package manager)
+- Git
 
-### System Architecture
-- Data ingestion from **Coinbase WebSocket**.
-- Real-time data processing using **Azure Event Hubs & Serverless Spark**.
-- Historical data stored in **Azure Data Lake Gen2**.
-- User-friendly interface built with **React/JavaScript**.
+## Installation & Setup
 
-## Project Timeline & Milestones
+### 1. Clone the Repository
+```bash
+git clone <repository-url>
+cd PaperTradingApp
+```
 
-| Phase | Duration | Tasks |
-|--------|------------|----------------------------------------|
-| **Phase 1** | Weeks 1-2 | Gather requirements, design architecture, and proof-of-concept for data ingestion. |
-| **Phase 2** | Weeks 3-4 | Set up Azure Event Hubs and serverless Spark streaming jobs. Test data flow. |
-| **Phase 3** | Weeks 5-6 | Integrate Azure Data Lake. Build API/UI components. |
-| **Phase 4** | Week 7 | Final testing, optimization, deployment, and documentation. |
+### 2. Frontend Setup
+```bash
+cd frontend
+npm install
+```
 
-## Conclusion
-This project aims to deliver a high-performance, real-time paper trading platform leveraging Azure's cloud capabilities. By addressing key limitations in existing platforms, we provide a more engaging and accurate trading experience.
+Create a `.env` file in the frontend directory with Firebase config:
+```
+REACT_APP_FIREBASE_API_KEY=your_api_key
+REACT_APP_FIREBASE_AUTH_DOMAIN=your_auth_domain
+REACT_APP_FIREBASE_PROJECT_ID=your_project_id
+REACT_APP_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+REACT_APP_FIREBASE_APP_ID=your_app_id
+```
 
+### 3. Backend Setup
+```bash
+cd python
+pip install -r requirements.txt
+```
+
+Create a `secrets.env` file in the python directory:
+```
+DB_CONNECTION=your_db_connection_string
+API_KEY=your_market_data_api_key
+```
+
+## Running the Application
+
+### 1. Start the Backend Server
+```bash
+cd python
+python websocket.py
+```
+This starts the WebSocket server on port 8000
+
+### 2. Start the Frontend Development Server
+```bash
+cd frontend
+npm start
+```
+The app will be available at http://localhost:3000
+
+## Key Features
+
+### Authentication
+- Email/password signup and login
+- Email verification
+- Password reset functionality
+
+### Trading Features
+- Real-time stock price updates
+- Market buy/sell orders
+- Portfolio tracking
+- Performance metrics
+- Order history
+
+### Charts & Analytics
+- Interactive price charts
+- Multiple timeframes (1D, 1W, 1M, etc.)
+- Portfolio performance visualization
+- Trading volume analysis
+
+## Project Structure
+
+```
+frontend/
+  ├── public/
+  ├── src/
+  │   ├── components/
+  │   ├── pages/
+  │   ├── App.js
+  │   ├── index.js
+  │   └── portfolio.css
+  ├── package.json
+  └── README.md
+
+python/
+  ├── data_extraction.py
+  ├── database.py
+  ├── profit_loss.py
+  ├── websocket.py
+  └── requirements.txt
+```
+
+## Building for Production
+
+### Frontend Build
+```bash
+cd frontend
+npm run build
+```
+This creates an optimized production build in the `build` folder
+
+### Backend Deployment
+1. Set up a production database
+2. Configure environment variables
+3. Deploy the Python backend to your server
+4. Update the WebSocket connection URL in frontend code
+
+## Known Limitations
+
+1. Limited to specific stock symbols
+2. Uses simulated market data in development
+3. Basic order types only (market orders)
+
+## Future Improvements
+
+1. Add limit orders and stop losses
+2. Implement more technical indicators
+3. Add paper trading competitions
+4. Expand available trading instruments
+5. Enhanced portfolio analytics
+
+## Troubleshooting
+
+### Common Issues
+
+1. WebSocket Connection Failed
+- Check if backend server is running
+- Verify WebSocket URL in frontend code
+- Check for firewall/network issues
+
+2. Authentication Errors
+- Verify Firebase configuration
+- Check email verification status
+- Clear browser cache/cookies
+
+### Development Tips
+
+1. Use Chrome DevTools for debugging
+2. Check WebSocket messages in Network tab
+3. Monitor Python server logs
+4. Use React Developer Tools extension
+
+## License
+[Add License Information]
