@@ -139,28 +139,12 @@ python/
   └── requirements.txt     # Python dependencies
 ```
 
-## Building for Production
-
-### Frontend Build
-```bash
-cd frontend
-npm run build
-```
-This creates an optimized production build in the `build` folder with minimized assets.
-
-### Backend Deployment
-1. Set up a production-grade database (PostgreSQL recommended)
-2. Configure environment variables for production settings
-3. Deploy the Python backend to your server infrastructure
-4. Update the WebSocket connection URL in frontend code
-5. Consider using a process manager like PM2 or Supervisor
-
 ## Known Limitations
-- Limited to specific stock symbols (currently supports major US equities)
+- Limited to specific stock symbols (currently supports top 10 US stocks)
 - Uses simulated market data in development environment
 - Supports basic order types only (market orders)
 - No options or derivatives trading
-- Historical data limited to 2 years
+- Historical data limited to 5 years
 
 ## Future Improvements
 1. Add advanced order types (limit orders, stop losses, trailing stops)
